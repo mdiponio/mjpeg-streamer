@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<streamer>
+    <!-- Common security configuration for application. -->
+	<security>
+		<!-- UI login username. -->
+		<username>admin</username>
+		
+		<!-- UI login password  -->
+		<password>passwd</password>
+		
+		<!-- Whether to protected access to the streams using a password. -->
+		<protect>true</protect>
+		
+		<!-- Whether to allow password reset.  -->
+		<allowReset>true</allowReset>
+		
+		<!-- Password that must be supplied to reset stream password. -->
+		<resetPassword>resetPasswd</resetPassword>		
+	</security>
+
+    <!-- Stream configuration. -->
+    <streams>
+    <!-- Source stream configuration options.
+        <stream>
+            <name></name>              -> Name of the stream which forms part of stream URLs
+            <url></url>                -> URL to access source MJPEG stream
+            <auth>  -> Optional authentication requrired to access source stream
+                <type></type>          -> Type of authentication source stream has
+                <username></username>  -> Username to access source stream 
+                <password></password>  -> Password to access source stream
+            </auth>
+            <accessPassword></accessPassword>  -> Optional static access password, this only 
+                                                  applies if streams are set
+        </stream> -->
+        <stream>
+            <name>shaker1</name>
+            <url>http://138.25.49.22/camera1.mjpg</url>
+            <auth>
+                <type>HTTP</type>
+                <username>user</username>
+                <password>pass</password>
+            </auth>
+            <accessPassword>shake</accessPassword>
+        </stream>
+        <stream>
+            <name>coupledtanks1</name>
+            <url>http://138.25.49.21/camera1.mjpg</url>
+        </stream>
+    </streams>
+</streamer>
