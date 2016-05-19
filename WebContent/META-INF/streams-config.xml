@@ -21,7 +21,7 @@
     <!-- Stream configuration. -->
     <streams>
     <!-- Source stream configuration options.
-        <stream>
+        <stream>3
             <name></name>              -> Name of the stream which forms part of stream URLs
             <url></url>                -> URL to access source MJPEG stream
             <auth>  -> Optional authentication requrired to access source stream
