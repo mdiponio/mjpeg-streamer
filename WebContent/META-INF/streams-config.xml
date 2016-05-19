@@ -7,17 +7,11 @@
 		
 		<!-- UI login password  -->
 		<password>passwd</password>
-		
-		<!-- Whether to protected access to the streams using a password. -->
-		<protect>true</protect>
-		
-		<!-- Whether to allow password reset.  -->
-		<allowReset>true</allowReset>
-		
-		<!-- Password that must be supplied to reset stream password. -->
-		<resetPassword>resetPasswd</resetPassword>		
-	</security>
-
+        
+        <!-- Secret used to authorise REST functions. -->
+        <apiSecret>asecret</apiSecret>
+    </security>
+    
     <!-- Stream configuration. -->
     <streams>
     <!-- Source stream configuration options.
@@ -29,8 +23,15 @@
                 <username></username>  -> Username to access source stream 
                 <password></password>  -> Password to access source stream
             </auth>
-            <accessPassword></accessPassword>  -> Optional static access password, this only 
-                                                  applies if streams are set
+            <protect></protect>        -> Whether to protect stream with either static password
+                                       -> resettable password
+            <access></access>          -> Optional static access password, this only 
+                                          applies if streams are set
+            <resettable></resettable>  -> Whether password is able to be remotely reset with API call,
+                                          default is resettable passwords
+            <ondemand></ondemand>      -> Whether source stream is accessed on demand or continuously, 
+                                          default is ondemand
+            
         </stream> -->
         <stream>
             <name>shaker1</name>
@@ -40,7 +41,9 @@
                 <username>user</username>
                 <password>pass</password>
             </auth>
-            <accessPassword>shake</accessPassword>
+            <access>shake</access>
+            <resettable>true</resettable>
+            <ondemand>true</ondemand>
         </stream>
         <stream>
             <name>coupledtanks1</name>
