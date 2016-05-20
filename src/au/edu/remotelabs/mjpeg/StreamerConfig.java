@@ -8,6 +8,8 @@
 package au.edu.remotelabs.mjpeg;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,7 +25,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
- * Configuration loader for streams and 
+ * Configuration for application.
  */
 public class StreamerConfig
 {
@@ -37,7 +39,7 @@ public class StreamerConfig
     private String secret;
 
     /** Configured streams. */
-    private Map<String, Stream> streams;
+    private Map<String, Stream> streams = new HashMap<>();
 
     /** Logger. */
     private final Logger logger = Logger.getLogger(getClass().getName());
@@ -51,10 +53,33 @@ public class StreamerConfig
     {
         if (!(configFile.exists() && configFile.canRead()))
         {
-            throw new ServletException("Configuratile file does not exist or is not readable.");
+            throw new ServletException("Configuration file does not exist or is not readable.");
         }
 
-        
+        FileInputStream fis = null;
+        try
+        {
+            fis = new FileInputStream(configFile);
+            this.parse(fis);
+        }
+        catch (IOException ex)
+        {
+            this.logger.severe("Failed to read configuration file, error " + ex.getClass().getSimpleName() + 
+                    ": " + ex.getMessage());
+            throw new ServletException("Failed reading file.");
+        }
+        finally
+        {
+            try
+            {
+                fis.close();
+            }
+            catch (IOException e)
+            {
+                this.logger.warning("Failed to close configuration file, error " + 
+                        e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+        }
     }
     
     /**
@@ -70,12 +95,9 @@ public class StreamerConfig
         try
         {
             XMLStreamReader reader = factory.createXMLStreamReader(in);
-            
             do
             {
-                int evt = reader.nextTag();
-                
-                if (evt == XMLStreamConstants.START_ELEMENT)
+                if (reader.next() == XMLStreamConstants.START_ELEMENT)
                 {
                     switch (reader.getLocalName())
                     {
@@ -100,8 +122,9 @@ public class StreamerConfig
         }
         catch (XMLStreamException e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
+            this.logger.severe("Failed to parse configuration file, error " + e.getClass().getSimpleName() + 
+                    ": " + e.getMessage());
         }
     }
     
@@ -113,7 +136,27 @@ public class StreamerConfig
      */
     private void parseSecurity(XMLStreamReader reader) throws XMLStreamException
     {
-        
+        do 
+        {
+            if (reader.nextTag() == XMLStreamConstants.START_ELEMENT)            
+            {
+                switch (reader.getLocalName())
+                {
+                case "username":
+                    this.username = reader.getElementText();
+                    break;
+                    
+                case "password":
+                    this.password = reader.getElementText();
+                    break;
+                    
+                case "apiSecret":
+                    this.secret = reader.getElementText();
+                    break;
+                }
+            }
+        }
+        while (reader.hasName() && !"security".equals(reader.getLocalName()));
     }
     
     /**
@@ -125,7 +168,78 @@ public class StreamerConfig
      */
     private void parseStreams(XMLStreamReader reader) throws XMLStreamException, ServletException
     {
+        do
+        {
+            if (reader.nextTag() == XMLStreamConstants.START_ELEMENT &&
+                    "stream".equals(reader.getLocalName()))
+            {
+                this.parseStream(reader);
+            }
+        }
+        while (reader.hasNext() && !"streams".equals(reader.getLocalName()));
+    }
+    
+    /**
+     * Parse a specific stream configuration section.
+     * 
+     * @return reader XML reader
+     * @throws XMLStreamException parse error
+     * @throws ServletException missing information
+     */
+    public void parseStream(XMLStreamReader reader) throws XMLStreamException, ServletException
+    {
+        Stream.Builder builder = new Stream.Builder();
+     
+        do 
+        {
+            if (reader.nextTag() == XMLStreamConstants.START_ELEMENT)
+            {
+                switch (reader.getLocalName())
+                {
+                case "name":
+                    builder.setName(reader.getElementText());
+                    break;
+                    
+                case "url":
+                    builder.setURL(reader.getElementText());
+                    break;
+                    
+                case "access":
+                    builder.setPassword(reader.getElementText());
+                    break;
+                    
+                case "resettable":
+                    builder.setResettable("true".equals(reader.getElementText()));
+                    break;
+                    
+                case "ondemand":
+                    builder.setOnDemand("true".equals(reader.getElementText()));
+                    break;
+                    
+                case "auth":
+                    do
+                    {
+                        if (reader.nextTag() == XMLStreamConstants.START_ELEMENT)
+                        {
+                            if ("type".equals(reader.getLocalName()))
+                            {
+                                builder.setAuthType(reader.getElementText());
+                            }
+                            else 
+                            {
+                                builder.addAuthParam(reader.getLocalName(), reader.getElementText());
+                            }
+                        }
+                    }
+                    while (reader.hasNext() && !"auth".equals(reader.getLocalName()));
+                    break;
+                }
+            }
+        }
+        while (reader.hasNext() && !"stream".equals(reader.getLocalName()));
+  
         
+        this.streams.put(builder.name, builder.build());
     }
 
     public String getAdminUsername() 
@@ -230,60 +344,60 @@ public class StreamerConfig
             this.authParams = Collections.unmodifiableMap(auth);
         }
 
-        static class StreamBuilder
+        static class Builder
         {
             private String name;
             private String url;
             private String pass;
-            private String type;
+            private String type = "NONE";      // Default source authentication is none 
             private Map<String, String> auth = new HashMap<>();
-            private boolean protect = false;
-            private boolean ondemand = true;
-            private boolean resettable = true;
+            private boolean protect = false;   // Default is not to protect streams
+            private boolean ondemand = true;   // Default is on demand stream connection management
+            private boolean resettable = true; // Default is resettable passwords
 
-            StreamBuilder setName(String name)
+            Builder setName(String name)
             {
                 this.name = name;
                 return this;
             }
 
-            StreamBuilder setURL(String url)
+            Builder setURL(String url)
             {
                 this.url = url;
                 return this;
             }
             
-            StreamBuilder setProtected(boolean protect)
+            Builder setProtected(boolean protect)
             {
                 this.protect = protect;
                 return this;
             }
             
-            StreamBuilder setResettable(boolean resettable)
+            Builder setResettable(boolean resettable)
             {
                 this.resettable = resettable;
                 return this;
             }
             
-            StreamBuilder setOnDemand(boolean ondemand)
+            Builder setOnDemand(boolean ondemand)
             {
                 this.ondemand = ondemand;
                 return this;
             }
             
-            StreamBuilder setPassword(String password)
+            Builder setPassword(String password)
             {
                 this.pass = password;
                 return this;
             }
 
-            StreamBuilder setAuthType(String type)
+            Builder setAuthType(String type)
             {
                 this.type = type;
                 return this;
             }
 
-            StreamBuilder addAuthParam(String name, String val)
+            Builder addAuthParam(String name, String val)
             {
                 this.auth.put(name, val);
                 return this;
