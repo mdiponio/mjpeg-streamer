@@ -37,24 +37,8 @@
             
         </stream> -->
         <stream>
-            <name>shaker1</name>
-            <url>http://138.25.49.22/camera1.mjpg</url>
-            <auth>
-                <type>HTTP</type>
-                <username>user</username>
-                <password>pass</password>
-            </auth>
-            <format> 
-                <boundary>abc123</boundary>
-            </format>
-            <protect>true</protect>
-            <access>shake</access>
-            <resettable>true</resettable>
-            <ondemand>true</ondemand>
-        </stream>
-        <stream>
-            <name>coupledtanks1</name>
-            <url>http://138.25.49.21/camera1.mjpg</url>
+            <name>ct</name>
+            <url>http://localhost/camera1.mjpg</url>
         </stream>
     </streams>
 </streamer>

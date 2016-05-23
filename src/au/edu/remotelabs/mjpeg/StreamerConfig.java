@@ -216,6 +216,10 @@ public class StreamerConfig
                     builder.setOnDemand("true".equals(reader.getElementText()));
                     break;
                     
+                case "protect":
+                    builder.setProtected("true".equals(reader.getElementText()));
+                    break;
+                    
                 case "auth":
                     do
                     {
@@ -233,6 +237,21 @@ public class StreamerConfig
                     }
                     while (reader.hasNext() && !"auth".equals(reader.getLocalName()));
                     break;
+                    
+                case "format":
+                    do
+                    {
+                        if (reader.nextTag() == XMLStreamConstants.START_ELEMENT)
+                        {
+                            builder.addFormatParam(reader.getLocalName(), reader.getElementText());
+                        }
+                    }
+                    while (reader.hasNext() && "!format".equals(reader.getLocalName()));
+                    break;
+                    
+                default:
+                    this.logger.severe("Error in configuration file, unexpected tag: " + reader.getLocalName());
+                    throw new ServletException("Unexpected tag reading configuration file.");
                 }
             }
         }
@@ -304,22 +323,32 @@ public class StreamerConfig
 
         /** Parameters such as username password pair to authenticate to source stream. */
         public final Map<String, String> authParams; 
+        
+        /** Format specific options that help reading source stream. */
+        public final Map<String, String> formatParams;
 
         Stream(String name, String url, String pass, boolean protect, boolean resettable, boolean ondemand, 
-                String type, Map<String, String> auth)
+                String type, Map<String, String> auth, Map<String, String> format)
                 throws ServletException
         {
-            Logger blog = Logger.getLogger(getClass().getName());
+            Logger lg = Logger.getLogger(getClass().getName());
 
             if ((this.name = name) == null)
             {
-                blog.severe("Error in stream configuration, name not set.");
+                lg.severe("Error in configuration, name not set.");
                 throw new ServletException("No name set for stream.");
             }
+            
             this.password = pass;
             this.resettable = resettable;
             this.ondemand = ondemand;
             this.protect = protect;
+
+            if (url == null)
+            {
+                lg.severe("Error in configuration, source stream URL not set.");
+                throw new ServletException("No source stream URL set.");
+            }
             
             try 
             {
@@ -327,7 +356,7 @@ public class StreamerConfig
             } 
             catch (MalformedURLException e) 
             {
-                blog.severe("Failed configuring stream "  + name + ", URL " + url + " is not valid.");
+                lg.severe("Failed configuring stream "  + name + ", URL " + url + " is not valid.");
                 throw new ServletException("Invalid source URL " + url + " for " + name, e);
             }
 
@@ -337,11 +366,12 @@ public class StreamerConfig
             }
             catch (NullPointerException | IllegalArgumentException e)
             {
-                blog.severe("Failed configuring stream " + name + ", authentication type " + type + " is not supported.");
+                lg.severe("Failed configuring stream " + name + ", authentication type " + type + " is not supported.");
                 throw new ServletException("Invalid authentication " + type + " for " + name, e);
             }
 
             this.authParams = Collections.unmodifiableMap(auth);
+            this.formatParams = Collections.unmodifiableMap(format);
         }
 
         static class Builder
@@ -354,6 +384,7 @@ public class StreamerConfig
             private boolean protect = false;   // Default is not to protect streams
             private boolean ondemand = true;   // Default is on demand stream connection management
             private boolean resettable = true; // Default is resettable passwords
+            private Map<String, String> format = new HashMap<>();
 
             Builder setName(String name)
             {
@@ -402,10 +433,16 @@ public class StreamerConfig
                 this.auth.put(name, val);
                 return this;
             }
+            
+            Builder addFormatParam(String name, String val)
+            {
+                this.format.put(name, val);
+                return this;
+            }
 
             public Stream build() throws ServletException
             {
-                return new Stream(name, url, pass, protect, resettable, ondemand, type, auth); 
+                return new Stream(name, url, pass, protect, resettable, ondemand, type, auth, format); 
             }
         }
     }
