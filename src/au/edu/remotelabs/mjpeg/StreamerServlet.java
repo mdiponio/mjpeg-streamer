@@ -27,7 +27,7 @@ import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
  */
 @WebServlet(name="StreamsServlet",
             urlPatterns = "/streams/*", 
-            initParams = { @WebInitParam(name = "streams-config", value = "./META-INF/streams.xml") })
+            initParams = { @WebInitParam(name = "streams-config", value = "./WebContent/META-INF/streams-config.xml") })
 public class StreamerServlet extends HttpServlet 
 {
     private static final long serialVersionUID = 1L;
@@ -73,8 +73,19 @@ public class StreamerServlet extends HttpServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException 
     {
-        // TODO Auto-generated method stub
-        response.getWriter().append("Served at: ").append(request.getContextPath());
+        String url = request.getRequestURI();
+        if (url.endsWith(".jpg"))
+        {
+            SourceStream stream = this.streams.values().iterator().next();
+            Frame frame = stream.getLastFrame();
+            if (frame != null)
+            {
+                response.setContentType(frame.getContentType());
+                response.setContentLength(frame.getContentLength());
+                frame.writeTo(response.getOutputStream());
+            }
+        }
+        
     }
 
     @Override

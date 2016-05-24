@@ -53,6 +53,8 @@ public class StreamerConfig
     {
         if (!(configFile.exists() && configFile.canRead()))
         {
+            this.logger.severe("Configuration file does not exist or is not readable. Configuration location: " + 
+                    configFile.getAbsolutePath());
             throw new ServletException("Configuration file does not exist or is not readable.");
         }
 

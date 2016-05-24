@@ -51,11 +51,12 @@
             <protect>true</protect>
             <access>shake</access>
             <resettable>true</resettable>
-            <ondemand>true</ondemand>
+            <ondemand>false</ondemand>
         </stream>
         <stream>
             <name>coupledtanks1</name>
             <url>http://138.25.49.21/camera1.mjpg</url>
+            <ondemand>false</ondemand>
         </stream>
     </streams>
 </streamer>
