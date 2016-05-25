@@ -10,6 +10,7 @@ package au.edu.remotelabs.mjpeg;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
@@ -107,6 +108,7 @@ public class SourceStream implements Runnable
                 }
             }
             
+            /* Read loop to acquire M-JPEG frames from source stream. */
             BufferedInputStream in = new BufferedInputStream(conn.getInputStream());
             while (!this.stop)
             {
@@ -155,9 +157,19 @@ public class SourceStream implements Runnable
                     break;
                 }
                 
+                /* Validate received frame is correct. */
+                if (mime.equalsIgnoreCase("jpeg") &&
+                    !(image[0] == 0xFF && image[1] == 0xD8 && image[size - 2] == 0xFF && image[size - 1] == 0xD9))
+                {
+                    this.logger.info("Received JPEG image for " + this.config.name + " has incorrect SOI and EOI "
+                            + "marker bytes, discarding frame as it may be corrupt.");
+                    continue;
+                }
+                
                 this.frame = new Frame(mime, image);
             }
             
+            /* Finished reading, through clean shutdown or otherwise, close stream. */
         }
         catch (IOException e)
         {
@@ -166,6 +178,31 @@ public class SourceStream implements Runnable
             this.error = true;
             this.errorReason = "Error reading stream " + this.config.name + ", error " + e.getClass().getSimpleName() + 
                     ": " + e.getMessage(); 
+        }
+    }
+    
+    /**
+     * Stops the reading source stream.
+     * 
+     * @return whether stopping was successful
+     */
+    public boolean stop()
+    {
+        if (this.readThread == null || !this.readThread.isAlive()) return true;
+        
+        try
+        {
+            this.logger.info("Stopping reading thread for " + this.config.name);
+            this.stop = true;
+            this.readThread.join(30000);
+            
+            if (this.readThread.isAlive()) this.logger.warning("Failed to stop reading thread for " + 
+                    this.config.name + " in 30 seconds.");
+            return !this.readThread.isAlive();
+        }
+        catch (InterruptedException e)
+        {
+            return true;
         }
     }
     
@@ -180,17 +217,18 @@ public class SourceStream implements Runnable
     private String readStreamLine(BufferedInputStream in) throws IOException
     {
         char buf[] = new char[255];
-        int pos = 0;
+        int len = 0;
         
-        do
+        buf[len++] = (char) in.read();
+        buf[len++] = (char) in.read();
+        
+        while (buf[len - 2] != '\r' && buf[len - 1] != '\n')
         {
-            if (this.stop) return null;
-            
-            buf[pos++] = (char)(in.read() & 0xF);
+            if (len == buf.length) buf = Arrays.copyOf(buf, buf.length * 2);
+            buf[len++]= (char) in.read();
         }
-        while (pos >= 2 && !(buf[pos - 2] == 0xD && buf[pos - 1] == 0xA));
         
-        return String.valueOf(buf, 0, pos);
+        return String.valueOf(buf, 0, len).trim();
     }
     
     /**
@@ -276,7 +314,7 @@ public class SourceStream implements Runnable
 
         try
         {
-            return Integer.parseInt(line.substring(line.indexOf(':') + 1));
+            return Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
         }
         catch (NumberFormatException e)
         {

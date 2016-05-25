@@ -10,6 +10,7 @@ package au.edu.remotelabs.mjpeg;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
@@ -27,6 +28,7 @@ import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
  */
 @WebServlet(name="StreamsServlet",
             urlPatterns = "/streams/*", 
+            loadOnStartup = 1,
             initParams = { @WebInitParam(name = "streams-config", value = "./WebContent/META-INF/streams-config.xml") })
 public class StreamerServlet extends HttpServlet 
 {
@@ -98,6 +100,11 @@ public class StreamerServlet extends HttpServlet
     @Override
     public void destroy()
     {
+        for (Entry<String, SourceStream> e : this.streams.entrySet())
+        {
+            e.getValue().stop();
+        }
+        
         super.destroy();
     }
 

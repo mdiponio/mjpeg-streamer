@@ -39,11 +39,22 @@ public class Frame
     }
 
     
+    /**
+     * Write the image bytes to the output stream. 
+     * 
+     * @param stream stream to write to
+     * @throws IOException error in writing
+     */
     public void writeTo(OutputStream stream) throws IOException
     {
         stream.write(this.image);
     }
     
+    /**
+     * Returns the length of the source read in 
+     * 
+     * @return
+     */
     public int getContentLength()
     {
         return this.image.length;
