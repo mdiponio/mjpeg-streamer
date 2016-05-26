@@ -51,15 +51,20 @@ public class Frame
     }
     
     /**
-     * Returns the length of the source read in 
+     * Returns the length of the frame image in bytes.
      * 
-     * @return
+     * @return image length in bytes
      */
     public int getContentLength()
     {
         return this.image.length;
     }
     
+    /**
+     * Returns the content type MIME of the frame. 
+     * 
+     * @return MIME type
+     */
     public String getContentType()
     {
         return this.mime;

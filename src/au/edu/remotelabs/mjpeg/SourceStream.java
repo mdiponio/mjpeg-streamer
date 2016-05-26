@@ -324,6 +324,8 @@ public class SourceStream implements Runnable
         }
     }
     
+    
+    
     /**
      * Gets the last frame read which may be null if no frame has been read.
      * 

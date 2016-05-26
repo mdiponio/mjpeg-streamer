@@ -27,11 +27,14 @@ import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
  * Servlet to serve MJpeg streams. 
  */
 @WebServlet(name="StreamsServlet",
-            urlPatterns = "/streams/*", 
+            urlPatterns = StreamerServlet.PATH + "*", 
             loadOnStartup = 1,
             initParams = { @WebInitParam(name = "streams-config", value = "./WebContent/META-INF/streams-config.xml") })
 public class StreamerServlet extends HttpServlet 
 {
+    /** Url pattern for servlet. */
+    public final static String PATH = "/streams/";
+    
     private static final long serialVersionUID = 1L;
     
     /** Streams. */
@@ -39,6 +42,9 @@ public class StreamerServlet extends HttpServlet
     
     /** Streamer configuration. */
     private StreamerConfig config;
+    
+    /** Authenticator of streams. */
+    private StreamAuthenticator authenticator;
     
     /** Logger. */
     private final Logger logger;
@@ -69,25 +75,96 @@ public class StreamerServlet extends HttpServlet
             this.logger.fine("Loaded configuration for stream: " + stream.name);
             this.streams.put(stream.name, new SourceStream(stream));
         }
+        
+        this.authenticator = new StreamAuthenticator(this.config);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException 
     {
+        /*
+         * URL format will be: 
+         *  <PATH>/<camera>.[jpg|mjpg][?<options>]
+         */
         String url = request.getRequestURI();
-        if (url.endsWith(".jpg"))
+        url = url.substring(url.indexOf(PATH) + PATH.length());
+        
+        int s = url.indexOf('.');
+        if (s < 1)
         {
-            SourceStream stream = this.streams.values().iterator().next();
-            Frame frame = stream.getLastFrame();
-            if (frame != null)
-            {
-                response.setContentType(frame.getContentType());
-                response.setContentLength(frame.getContentLength());
-                frame.writeTo(response.getOutputStream());
-            }
+            /* Stream format not specified, resource not found. */
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
         }
         
+        Stream stream = this.config.getStream(url.substring(0, s));
+        if (stream == null)
+        {
+            /* Camera with name not found, 404 response. */
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        
+        if (!this.authenticator.authenticate(stream, request.getParameter("pw")))
+        {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        
+        SourceStream source = this.streams.get(stream.name);
+        if (url.regionMatches(true, s + 1, "jpeg", 0, 4))
+        {
+            this.handleJpegRequest(source, request.getParameterMap(), response);
+        }
+        else if (url.regionMatches(true, s + 1, "mjpg", 0, 4))
+        {
+            this.handleMJpegRequest(source, request.getParameterMap(), response);
+        }
+        else
+        {
+            /* Unknown stream request. */
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        
+    }
+    
+    /**
+     * Handle single JPEG request, writing a single frame to the request 
+     * response stream. 
+     * 
+     * @param stream source 
+     * @param params request parameters
+     * @param response request response
+     * @throws ServletException 
+     * @throws IOException
+     */
+    private void handleJpegRequest(SourceStream stream, Map<String, String[]> params, HttpServletResponse response) 
+            throws ServletException, IOException
+    {
+        if (!stream.isReading()) stream.start();
+        
+        Frame frame = stream.getLastFrame();
+        if (frame != null)
+        {
+            response.setContentType(frame.getContentType());
+            response.setContentLength(frame.getContentLength());
+            frame.writeTo(response.getOutputStream());
+        }
+    }
+    
+    /**
+     * Handle MJpeg request, writing frames to the request response stream.
+     * 
+     * @param stream source to return
+     * @param params request parameters
+     * @param response request response
+     * @throws ServletException error wring to stream
+     */
+    private void handleMJpegRequest(SourceStream stream, Map<String, String[]> params, HttpServletResponse response) 
+            throws ServletException, IOException 
+    {
+        // TODO Handle MJpeg response
     }
 
     @Override
