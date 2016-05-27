@@ -16,12 +16,12 @@ import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
 /**
  * Class that provides password protection for a stream.
  */
-public class StreamAuthenticator
+public class Authenticator
 {
     /** Passwords to authenticate. */
     private final Map<String, String> passwords;
     
-    public StreamAuthenticator(StreamerConfig config)
+    public Authenticator(StreamerConfig config)
     {
         this.passwords = new HashMap<>();
         

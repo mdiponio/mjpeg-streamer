@@ -44,7 +44,7 @@ public class StreamerServlet extends HttpServlet
     private StreamerConfig config;
     
     /** Authenticator of streams. */
-    private StreamAuthenticator authenticator;
+    private Authenticator authenticator;
     
     /** Logger. */
     private final Logger logger;
@@ -76,7 +76,7 @@ public class StreamerServlet extends HttpServlet
             this.streams.put(stream.name, new SourceStream(stream));
         }
         
-        this.authenticator = new StreamAuthenticator(this.config);
+        this.authenticator = new Authenticator(this.config);
     }
 
     @Override
@@ -111,20 +111,46 @@ public class StreamerServlet extends HttpServlet
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-        
-        SourceStream source = this.streams.get(stream.name);
-        if (url.regionMatches(true, s + 1, "jpeg", 0, 4))
+
+
+        String format = url.substring(s + 1);
+        if (!("jpeg".equalsIgnoreCase(format) || 
+              "mjpg".equalsIgnoreCase(format)))
         {
-            this.handleJpegRequest(source, request.getParameterMap(), response);
-        }
-        else if (url.regionMatches(true, s + 1, "mjpg", 0, 4))
-        {
-            this.handleMJpegRequest(source, request.getParameterMap(), response);
-        }
-        else
-        {
-            /* Unknown stream request. */
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        /* We have a valid request, can connect to stream. */
+        SourceStream source = this.streams.get(stream.name);
+        try
+        {
+            synchronized (source)
+            {
+            
+                source.register();
+                source.wait();
+            }
+            
+            switch (format)
+            {
+            case "jpeg":
+                this.handleJpegRequest(source, request.getParameterMap(), response);
+                break;
+                
+            case "mjpeg":
+                this.handleMJpegRequest(source, request.getParameterMap(), response);
+                break;
+            }
+        }
+        catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        finally
+        {
+            source.unregister();
         }
         
     }
@@ -142,14 +168,20 @@ public class StreamerServlet extends HttpServlet
     private void handleJpegRequest(SourceStream stream, Map<String, String[]> params, HttpServletResponse response) 
             throws ServletException, IOException
     {
-        if (!stream.isReading()) stream.start();
-        
         Frame frame = stream.getLastFrame();
         if (frame != null)
         {
             response.setContentType(frame.getContentType());
             response.setContentLength(frame.getContentLength());
             frame.writeTo(response.getOutputStream());
+        }
+        else if (stream.isErrored())
+        {
+            this.logger.fine("Cannot provide stream " + stream.getName() + " frame, error: " + stream.getError());
+        }
+        else
+        {
+            this.logger.fine("Cannot provide stream " + stream.getName() + " frame, no error reported.");
         }
     }
     

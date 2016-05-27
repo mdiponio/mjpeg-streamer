@@ -31,9 +31,6 @@ public class SourceStream implements Runnable
      *  HTTP header as is typically the case. */
     private String boundary;
     
-    /** Whether the connection is being read from. */
-    private boolean reading;
-    
     /** Whether an error has occurred accessing the stream. */
     private boolean error;
     
@@ -45,6 +42,9 @@ public class SourceStream implements Runnable
     
     /** Whether to stop reading. */
     private boolean stop;
+    
+    /** The number of registered listeners on this stream. */
+    private int registered;
     
     /** Logger. */
     private final Logger logger;
@@ -63,35 +63,42 @@ public class SourceStream implements Runnable
     }
     
     /**
-     * Starts the thread that reads the source stream.
-     * 
-     * @return true if able to start
+     * Register to receive frames when acquired from this stream source.
      */
-    public boolean start()
+    public synchronized void register()
     {
-        if (this.readThread != null && this.readThread.isAlive())
-        {
-            this.logger.warning("Unable to start stream because the reading thread for the stream is already running.");
-            return false;
-        }
-        
+        /* If not actively reading from the stream, spool up connection. */
+        if (!this.isReading()) this.start();        
+        this.registered++;
+    }
+    
+    public synchronized void unregister()
+    {
+        if (--this.registered == 0 && this.config.ondemand) this.stop();
+    }
+    
+    /**
+     * Starts the thread that reads the source stream.
+     */
+    private void start()
+    {
+
         this.readThread = new Thread(this);
         this.readThread.setName("Stream: " + this.config.name);
         this.readThread.start();
-        
-        return false;
     }
 
     @Override
     public void run()
     {
-        this.reading = true;
         this.stop = false;
         this.error = false;
         this.errorReason = null;
 
         try
         {
+            this.logger.fine("Starting stream reading for " + this.config.name);
+            
             /* Open connection. */
             HttpURLConnection conn = (HttpURLConnection) this.config.source.openConnection();
             
@@ -166,7 +173,11 @@ public class SourceStream implements Runnable
                     continue;
                 }
                 
-                this.frame = new Frame(mime, image);
+                synchronized (this)
+                {                
+                    this.frame = new Frame(mime, image);
+                    this.notifyAll();
+                }
             }
             
             /* Finished reading, through clean shutdown or otherwise, close stream. */
@@ -183,12 +194,10 @@ public class SourceStream implements Runnable
     
     /**
      * Stops the reading source stream.
-     * 
-     * @return whether stopping was successful
      */
-    public boolean stop()
+    public void stop()
     {
-        if (this.readThread == null || !this.readThread.isAlive()) return true;
+        if (!this.isReading()) return;
         
         try
         {
@@ -198,11 +207,10 @@ public class SourceStream implements Runnable
             
             if (this.readThread.isAlive()) this.logger.warning("Failed to stop reading thread for " + 
                     this.config.name + " in 30 seconds.");
-            return !this.readThread.isAlive();
         }
-        catch (InterruptedException e)
-        {
-            return true;
+        catch (Exception e)
+        { 
+            e.printStackTrace(); 
         }
     }
     
@@ -324,7 +332,15 @@ public class SourceStream implements Runnable
         }
     }
     
-    
+    /**
+     * Gets the name of this stream.
+     * 
+     * @return name of stream
+     */
+    public String getName()
+    {
+        return this.config.name;
+    }
     
     /**
      * Gets the last frame read which may be null if no frame has been read.
@@ -343,7 +359,7 @@ public class SourceStream implements Runnable
      */
     public boolean isReading()
     {
-        return this.reading;
+        return this.readThread != null && this.readThread.isAlive();
     }
     
     /**
