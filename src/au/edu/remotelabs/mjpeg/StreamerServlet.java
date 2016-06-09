@@ -22,6 +22,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
+import au.edu.remotelabs.mjpeg.dest.JpegOutput;
+import au.edu.remotelabs.mjpeg.dest.MJpegOutput;
+import au.edu.remotelabs.mjpeg.dest.StreamOutput;
+import au.edu.remotelabs.mjpeg.source.SourceStream;
 
 /**
  * Servlet to serve MJpeg streams. 
@@ -85,7 +89,7 @@ public class StreamerServlet extends HttpServlet
     {
         /*
          * URL format will be: 
-         *  <PATH>/<camera>.[jpg|mjpg][?<options>]
+         *  <PATH>/<camera>.[jpeg|mjpg][?<options>]
          */
         String url = request.getRequestURI();
         url = url.substring(url.indexOf(PATH) + PATH.length());
@@ -121,82 +125,25 @@ public class StreamerServlet extends HttpServlet
             return;
         }
 
-        /* We have a valid request, can connect to stream. */
-        SourceStream source = this.streams.get(stream.name);
-        try
+        StreamOutput out;
+        switch (format)
         {
-            synchronized (source)
-            {
+        case "jpeg":
+            out = new JpegOutput(response, request.getParameterMap(), this.streams.get(stream.name));
+            break;
             
-                source.register();
-                source.wait();
-            }
+        case "mjpg":
+            out = new MJpegOutput(response, request.getParameterMap(), this.streams.get(stream.name));
+            break;
             
-            switch (format)
-            {
-            case "jpeg":
-                this.handleJpegRequest(source, request.getParameterMap(), response);
-                break;
-                
-            case "mjpeg":
-                this.handleMJpegRequest(source, request.getParameterMap(), response);
-                break;
-            }
-        }
-        catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        finally
-        {
-            source.unregister();
+        default:
+            /* Whatever format was requested was not understood, return bad request. */
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
         }
         
-    }
-    
-    /**
-     * Handle single JPEG request, writing a single frame to the request 
-     * response stream. 
-     * 
-     * @param stream source 
-     * @param params request parameters
-     * @param response request response
-     * @throws ServletException 
-     * @throws IOException
-     */
-    private void handleJpegRequest(SourceStream stream, Map<String, String[]> params, HttpServletResponse response) 
-            throws ServletException, IOException
-    {
-        Frame frame = stream.getLastFrame();
-        if (frame != null)
-        {
-            response.setContentType(frame.getContentType());
-            response.setContentLength(frame.getContentLength());
-            frame.writeTo(response.getOutputStream());
-        }
-        else if (stream.isErrored())
-        {
-            this.logger.fine("Cannot provide stream " + stream.getName() + " frame, error: " + stream.getError());
-        }
-        else
-        {
-            this.logger.fine("Cannot provide stream " + stream.getName() + " frame, no error reported.");
-        }
-    }
-    
-    /**
-     * Handle MJpeg request, writing frames to the request response stream.
-     * 
-     * @param stream source to return
-     * @param params request parameters
-     * @param response request response
-     * @throws ServletException error wring to stream
-     */
-    private void handleMJpegRequest(SourceStream stream, Map<String, String[]> params, HttpServletResponse response) 
-            throws ServletException, IOException 
-    {
-        // TODO Handle MJpeg response
+        /* Handle response. */
+        out.handle();
     }
 
     @Override

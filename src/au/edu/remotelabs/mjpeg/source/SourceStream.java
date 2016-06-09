@@ -5,15 +5,19 @@
  * @date 18th May 2016
  */
 
-package au.edu.remotelabs.mjpeg;
+package au.edu.remotelabs.mjpeg.source;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 
 import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
+import au.edu.remotelabs.mjpeg.dest.StreamOutput;
 
 /**
  * Decomposes a M-JPEG stream down to its frames.
@@ -42,9 +46,9 @@ public class SourceStream implements Runnable
     
     /** Whether to stop reading. */
     private boolean stop;
-    
-    /** The number of registered listeners on this stream. */
-    private int registered;
+
+    /** List of destination streams that provides M-JPEG streams to clients. */
+    private final List<StreamOutput> destinations;
     
     /** Logger. */
     private final Logger logger;
@@ -60,21 +64,58 @@ public class SourceStream implements Runnable
                     "to connect at start up.");
             this.start();
         }
+        
+        this.destinations = Collections.synchronizedList(new ArrayList<StreamOutput>());
     }
     
     /**
      * Register to receive frames when acquired from this stream source.
+     * 
+     * @param output the destination output being registered
      */
-    public synchronized void register()
+    public void register(StreamOutput output)
     {
-        /* If not actively reading from the stream, spool up connection. */
-        if (!this.isReading()) this.start();        
-        this.registered++;
+        synchronized (this.destinations)
+        {
+            /* If not actively reading from the stream, spool up connection. */
+            this.destinations.add(output);
+            if (!this.isReading()) this.start();        
+        }
     }
     
-    public synchronized void unregister()
+    /**
+     * Unregister from receiving frames.
+     * 
+     * @param output the destination output being unregistered
+     */
+    public void unregister(StreamOutput output)
     {
-        if (--this.registered == 0 && this.config.ondemand) this.stop();
+        synchronized (this.destinations)
+        {
+            this.destinations.remove(output);
+            if (this.destinations.size() == 0 && this.config.ondemand) this.stop();
+        }
+    }
+    
+    /**
+     * Blocking call to get the next frame when it is read from the source
+     * stream. If an error has occurred, null will be returned.
+     * 
+     * @return next frame that is read
+     */
+    public Frame nextFrame()
+    {
+        synchronized (this)
+        {
+            try
+            {
+                this.wait();
+            }
+            catch (InterruptedException e)
+            {  }
+        }
+
+        return this.error || this.stop ? null : this.frame;
     }
     
     /**
@@ -82,7 +123,6 @@ public class SourceStream implements Runnable
      */
     private void start()
     {
-
         this.readThread = new Thread(this);
         this.readThread.setName("Stream: " + this.config.name);
         this.readThread.start();
@@ -101,6 +141,10 @@ public class SourceStream implements Runnable
             
             /* Open connection. */
             HttpURLConnection conn = (HttpURLConnection) this.config.source.openConnection();
+            
+            /* The timeout ensure that we don't indefinitely block destinations because the
+             * source is not currently available. */
+            conn.setConnectTimeout(2000);
             
             /* Read boundary from content type header. */
             String contentType = conn.getContentType();
@@ -126,12 +170,12 @@ public class SourceStream implements Runnable
                  * content-type: <MIME>
                  * content-length: <length>
                  * [blank line]
-                 * FF D8<image bytes>
+                 * FF D8<buf bytes>
                  * ...
                  * ...
-                 * <image bytes>FF D9
+                 * <buf bytes>FF D9
                  * ---
-                 * where FF D8 and FF D9 are start and image markers respectively.
+                 * where FF D8 and FF D9 are start and buf markers respectively.
                  */
                 
                 if (!this.skipToNextFrame(in)) break;
@@ -145,7 +189,7 @@ public class SourceStream implements Runnable
                 /* An addition blank line. */
                 this.readStreamLine(in);
                 
-                /* Read image bytes. */
+                /* Read buf bytes. */
                 byte image[] = new byte[size];
                 int r, read = 0;
                 
@@ -157,10 +201,10 @@ public class SourceStream implements Runnable
                 
                 if (size != read)
                 {
-                    this.logger.warning("Failed to fully read image bytes for stream " + this.config.name + 
+                    this.logger.warning("Failed to fully read buf bytes for stream " + this.config.name + 
                             ", read " + read + " of " + size + " bytes.");
                     this.error = true;
-                    this.errorReason = "Failed to read image bytes";
+                    this.errorReason = "Failed to read buf bytes";
                     break;
                 }
                 
@@ -168,7 +212,7 @@ public class SourceStream implements Runnable
                 if (mime.equalsIgnoreCase("jpeg") &&
                     !(image[0] == 0xFF && image[1] == 0xD8 && image[size - 2] == 0xFF && image[size - 1] == 0xD9))
                 {
-                    this.logger.info("Received JPEG image for " + this.config.name + " has incorrect SOI and EOI "
+                    this.logger.info("Received JPEG buf for " + this.config.name + " has incorrect SOI and EOI "
                             + "marker bytes, discarding frame as it may be corrupt.");
                     continue;
                 }
@@ -181,6 +225,7 @@ public class SourceStream implements Runnable
             }
             
             /* Finished reading, through clean shutdown or otherwise, close stream. */
+            conn.getInputStream().close();
         }
         catch (IOException e)
         {
@@ -190,7 +235,17 @@ public class SourceStream implements Runnable
             this.errorReason = "Error reading stream " + this.config.name + ", error " + e.getClass().getSimpleName() + 
                     ": " + e.getMessage(); 
         }
+        finally 
+        {
+            synchronized (this)
+            {
+                /* If any listeners are still waiting, wake them up. */
+                this.notifyAll();
+            }
+        }
     }
+        
+      
     
     /**
      * Stops the reading source stream.
@@ -210,7 +265,7 @@ public class SourceStream implements Runnable
         }
         catch (Exception e)
         { 
-            e.printStackTrace(); 
+            this.logger.severe("Error stopping stream reading, " + e.getClass().getName() + ": " + e.getMessage());
         }
     }
     

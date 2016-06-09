@@ -5,7 +5,7 @@
  * @date 18th May 2016
  */
 
-package au.edu.remotelabs.mjpeg;
+package au.edu.remotelabs.mjpeg.source;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,48 +16,56 @@ import java.io.OutputStream;
 public class Frame
 {
     /** Image bytes. */
-    private final byte image[];
+    protected byte buf[];
     
     /** Timestamp of when the frame was read. */
     private final long timestamp;
     
-    /** MIME type of image. */
+    /** MIME type of buf. */
     private final String mime;
-    
     
     /**
      * Creates the frame with the specified content size.
      * 
-     * @param mime image mime type
-     * @param data image data bytes 
+     * @param mime buf mime type
+     * @param data buf data bytes 
      */
     public Frame(String mime, byte data[])
     {
         this.mime = mime;
-        this.image = data;
+        this.buf = data;
         this.timestamp = System.currentTimeMillis();
     }
 
+    /**
+     * Returns a mutable copy of this frame.
+     * 
+     * @return mutable frame.
+     */
+    public FrameTransformer transformer() throws IOException
+    {
+        return new FrameTransformer(this);
+    }
     
     /**
-     * Write the image bytes to the output stream. 
+     * Write the buf bytes to the output stream. 
      * 
      * @param stream stream to write to
      * @throws IOException error in writing
      */
     public void writeTo(OutputStream stream) throws IOException
     {
-        stream.write(this.image);
+        stream.write(this.buf);
     }
     
     /**
-     * Returns the length of the frame image in bytes.
+     * Returns the length of the frame buf in bytes.
      * 
-     * @return image length in bytes
+     * @return buf length in bytes
      */
     public int getContentLength()
     {
-        return this.image.length;
+        return this.buf.length;
     }
     
     /**

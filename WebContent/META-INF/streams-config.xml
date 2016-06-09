@@ -56,5 +56,9 @@
             <name>coupledtanks1</name>
             <url>http://138.25.49.21/camera1.mjpg</url>
         </stream>
+        <stream>
+            <name>dummy</name>
+            <url>http://138.25.49.17</url>
+        </stream>
     </streams>
 </streamer>
