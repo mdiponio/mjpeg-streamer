@@ -7,8 +7,12 @@
 
 package au.edu.remotelabs.mjpeg.source;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import javax.imageio.ImageIO;
 
 /** 
  * A single frame from the source stream.
@@ -38,13 +42,13 @@ public class Frame
     }
 
     /**
-     * Returns a mutable copy of this frame.
+     * Returns a buffered image decoded from this frames bytes.
      * 
-     * @return mutable frame.
+     * @return image decoded image
      */
-    public FrameTransformer transformer() throws IOException
+    public BufferedImage decodeImage() throws IOException
     {
-        return new FrameTransformer(this);
+        return ImageIO.read(new ByteArrayInputStream(this.buf));
     }
     
     /**

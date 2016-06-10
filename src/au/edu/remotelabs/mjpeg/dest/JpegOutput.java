@@ -44,8 +44,17 @@ public class JpegOutput extends StreamOutput
     }
     
     @Override
+    protected boolean willWrite(Frame frame)
+    {
+        /* Always write frame. */
+        return true;
+    }
+    
+    @Override
     public String getSuffix()
     {
         return "jpeg";
     }
+
+    
 }

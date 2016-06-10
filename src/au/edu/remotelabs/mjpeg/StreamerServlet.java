@@ -144,6 +144,7 @@ public class StreamerServlet extends HttpServlet
         
         /* Handle response. */
         out.handle();
+        out.cleanup();
     }
 
     @Override

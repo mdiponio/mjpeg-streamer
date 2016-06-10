@@ -48,19 +48,27 @@ public class MJpegOutput extends StreamOutput
         this.delay = rate;
         this.sent = System.currentTimeMillis();
     }
-    
+
     @Override
     protected void writeHeaders() throws ServletException, IOException
     {
         this.response.setContentType("multipart/x-mixed-replace;boundary=" + BOUNDARY);
     }
+    
+    @Override
+    protected boolean willWrite(Frame frame)
+    {
+        /* If acquisition is faster than target framerate, drop frames. */
+        if (this.sent + this.delay > System.currentTimeMillis()) return false;
+        
+        this.sent = System.currentTimeMillis();
+        return true;
+    }
 
     @Override
     public boolean writeFrame(Frame frame) throws IOException
     {
-        /* If acquisition is faster than target framerate, drop frames. */
-        if (this.sent + this.delay > System.currentTimeMillis()) return true;
-        this.sent = System.currentTimeMillis();
+        
         
         this.writeln();
         this.writeln("--", BOUNDARY);

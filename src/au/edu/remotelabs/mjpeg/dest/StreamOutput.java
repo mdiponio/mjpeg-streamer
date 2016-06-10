@@ -17,7 +17,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 import au.edu.remotelabs.mjpeg.source.Frame;
-import au.edu.remotelabs.mjpeg.source.FrameTransformer;
 import au.edu.remotelabs.mjpeg.source.SourceStream;
 
 /**
@@ -38,20 +37,8 @@ public abstract class StreamOutput
     /** Source stream that is being returned. */
     protected final SourceStream source;
 
-    /** Whether we are apply transforms to the buf. */
-    private final boolean transform;
-
-    /** Requested width of frames. */
-    private final int width;
-    
-    /** Requested height of frames. */
-    private final int height;
-    
-    /** Requested quality of frames. */
-    private final int quality;
-    
-    /** Whether to add timestamp to buf. */
-    private boolean timestamp;
+    /** Transformer to modify acquired frame as requested. */ 
+    private final FrameTransformer transformer;
     
     /** Logger. */
     protected final Logger logger;
@@ -64,32 +51,8 @@ public abstract class StreamOutput
         
         this.requestParams = params;
         this.source = source;
-
-        /* Quality is a percentage from 1 to 100 with 0 being no quality change. */ 
-        int q = 0;
-        if (params.containsKey("q")) q = Integer.parseInt(params.get("q")[0]);
-        if (params.containsKey("quality")) q = Integer.parseInt(params.get("quality")[0]);
-
-        if (q > 100) q = 100;
-        if (q < 0) q = 0;
-        this.quality = q;
         
-        /* A negative value indicates maintain aspect ratio so only one 
-         * dimension needs to be set. */
-        int wid = -1, hei = -1;
-        if (params.containsKey("w")) wid = Integer.parseInt(params.get("w")[0]);
-        if (params.containsKey("width")) wid = Integer.parseInt(params.get("width")[0]);        
-        if (params.containsKey("h")) hei = Integer.parseInt(params.get("h")[0]);
-        if (params.containsKey("height")) hei = Integer.parseInt(params.get("height")[0]);        
-        this.width = wid;
-        this.height = hei;
-        
-        this.timestamp = (params.containsKey("ts") && params.get("ts")[0].charAt(0) == 't') ||
-                         (params.containsKey("timestamp") && params.get("timestamp")[0].charAt(0) == 't');
-        
-        this.transform = this.quality > 0 ||                  // Changing quality 
-                         this.width > 0 || this.height > 0 || // Changing dimensioning
-                         this.timestamp;                      // Adding a time stamp
+        this.transformer = FrameTransformer.get(this.source, this.requestParams);
     }
     
     /**
@@ -111,26 +74,24 @@ public abstract class StreamOutput
             this.output = this.response.getOutputStream();
             
             Frame frame;
+            
+            boolean cont = true;
             do
             {
                 /* Acquire and stream loop which may be terminated if an
                  * error occurs reading source stream. */
                 if ((frame = this.source.nextFrame()) == null) return;
                 
+                /* Output will drop this frame so short continue acquisition. */
+                if (!this.willWrite(frame)) continue;
+                
                 /* There may be transforms on frame such as size or quality. 
                  * If they are common we transform frame here. */
-                if (this.transform)
-                {
-                    FrameTransformer transformer = frame.transformer();
-                    
-                    if (this.timestamp) transformer.addTime();
-                    if (this.width > 0 || this.height > 0) transformer.resize(this.width, this.height);
-                    if (this.quality > 0 || this.quality < 100) transformer.setQuality(this.quality);
-                    
-                    frame = transformer.encode();
-                }
+                if (this.transformer.isTransforming()) frame = transformer.transform(frame);
+                
+                cont = this.writeFrame(frame);
             }
-            while (this.writeFrame(frame));
+            while (cont);
         }
         catch (IOException ex)
         {
@@ -157,6 +118,13 @@ public abstract class StreamOutput
      * @throws IOException error writing response
      */
     protected abstract void writeHeaders() throws ServletException, IOException;
+    
+    /** 
+     * Checks whether will write to the output or discard the frame.
+     * 
+     * @return true if writing
+     */
+    protected abstract boolean willWrite(Frame frame);
     
     /**
      * Writes a frame to the response stream. The method response indicates 
@@ -194,4 +162,12 @@ public abstract class StreamOutput
      * @return format suffix
      */
     public abstract String getSuffix();
+    
+    /**
+     * Cleanup the output, releasing resources.
+     */
+    public void cleanup()
+    {
+        FrameTransformer.unget(this.transformer);
+    }
 }
