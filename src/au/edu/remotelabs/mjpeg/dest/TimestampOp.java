@@ -34,18 +34,22 @@ public class TimestampOp implements TransformOp
     
 
     @Override
-    public void configure(String param)
+    public boolean configure(String param)
     {
         /* Doesn't require any specific configuration. */
+        return true;
     }
 
     @Override
-    public void apply(BufferedImage image, Graphics2D canvas) throws IOException
+    public BufferedImage apply(BufferedImage image) throws IOException
     {
+        Graphics2D canvas = image.createGraphics();
         canvas.setColor(Color.BLACK);
         canvas.setFont(font);
         canvas.drawString(LocalDateTime.now().format(formatter), 10, 20);
         canvas.dispose();
+        
+        return image;
     }
 
 }

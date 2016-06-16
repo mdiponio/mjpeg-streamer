@@ -7,7 +7,6 @@
 
 package au.edu.remotelabs.mjpeg.dest;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,7 +18,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 
 import au.edu.remotelabs.mjpeg.source.Frame;
 import au.edu.remotelabs.mjpeg.source.SourceStream;
@@ -31,8 +34,7 @@ public class FrameTransformer
 {    
     private static final Map<String, Class<? extends TransformOp>> TRANSFORMS = new HashMap<>(4);
     static {
-        TRANSFORMS.put("quality",   ResizeOp.class);
-        TRANSFORMS.put("scale",     ScaleOp.class);
+        TRANSFORMS.put("quality",   QualityOp.class);
         TRANSFORMS.put("size",      ResizeOp.class);
         TRANSFORMS.put("timestamp", TimestampOp.class);
     }
@@ -46,6 +48,9 @@ public class FrameTransformer
     /** Operations list. */
     private final List<TransformOp> ops;
     
+    /** Encode quality of transformed frame. */
+    private float encodeQuality;
+    
     /** Time stamp of cached transformed frame. */
     private long timestamp;
     
@@ -58,6 +63,9 @@ public class FrameTransformer
     private FrameTransformer(String name, Map<String, String[]> request)
     {
         this.name = name;
+        
+        /* Default encode quality is source quality. */
+        this.encodeQuality = 1.f;
         
         List<TransformOp> opsList = new ArrayList<>();
         Map<String, String> paramMap = new HashMap<>();
@@ -82,6 +90,22 @@ public class FrameTransformer
                     Logger.getLogger(getClass().getName()).severe("Bug, error instantiating transform operation '" +
                             p.getKey() + "', error " + e.getClass().getName() + ": " + e.getMessage());
                 }
+            }
+        }
+        
+        for (int i = 0; i < opsList.size(); i++)
+        {
+            Class<? extends TransformOp> opClass = opsList.get(i).getClass(); 
+            if (opClass.equals(TimestampOp.class))
+            {
+                /* Time stamping should always be last because if it is sized or scaled, 
+                 * the time stamp might be illegible. */
+                TransformOp last = opsList.set(opsList.size() - 1, opsList.get(i));
+                opsList.set(i, last);
+            }
+            else if (opClass.equals(QualityOp.class))
+            {
+                this.encodeQuality = ((QualityOp)opsList.get(i)).getEncodeQuality();
             }
         }
         
@@ -119,15 +143,14 @@ public class FrameTransformer
         }
         
         BufferedImage image = frame.decodeImage();
-        Graphics2D canvas = image.createGraphics();
         
-        for (TransformOp op : this.ops) op.apply(image, canvas);        
-        
-        /* No longer modifying the frame. */
-        canvas.dispose();
+        for (TransformOp op : this.ops)
+        {
+            image = op.apply(image);
+        }
         
         this.timestamp = frame.getTimestamp();
-        return this.cachedFrame = this.encode(image);
+        return this.cachedFrame = this.encode(frame, image);
     }
     
     /**
@@ -147,12 +170,23 @@ public class FrameTransformer
      * @return frame encoded frame
      * @throws IOException error in encoding
      */
-    private Frame encode(BufferedImage image) throws IOException
+    private Frame encode(Frame orig, BufferedImage image) throws IOException
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ImageIO.write(image, "jpg", out);
-        byte buf[] = out.toByteArray();
-        return new Frame("image/jpeg", buf);
+        
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        
+        if (this.encodeQuality < 1)
+        {
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(this.encodeQuality);
+        }
+        
+        writer.setOutput(new MemoryCacheImageOutputStream(out));
+        writer.write(null, new IIOImage(image, null, null), param);
+
+        return new Frame("image/jpeg", out.toByteArray());
     }
     
     /**

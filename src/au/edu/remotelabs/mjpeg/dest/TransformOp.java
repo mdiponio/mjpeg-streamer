@@ -7,7 +7,6 @@
 
 package au.edu.remotelabs.mjpeg.dest;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -20,14 +19,15 @@ public interface TransformOp
      * Configure operation using supplied request parameters.
      * 
      * @param param request parameter
+     * @return whether configuration was successful from supplied param
      */
-    void configure(String param);
+    boolean configure(String param);
     
     /**
      * Apply transformation to image.
      * 
-     * @param image
-     * @param canvas
+     * @param image image to transform
+     * @return transform image which may not be the same as param image  
      */
-    void apply(BufferedImage image, Graphics2D canvas) throws IOException;
+    BufferedImage apply(BufferedImage images) throws IOException;
 }
