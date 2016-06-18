@@ -68,8 +68,6 @@ public class MJpegOutput extends StreamOutput
     @Override
     public boolean writeFrame(Frame frame) throws IOException
     {
-        
-        
         this.writeln();
         this.writeln("--", BOUNDARY);
         this.writeln("content-type: ", frame.getContentType());

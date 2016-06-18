@@ -1,0 +1,30 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Web Socket Test</title>
+		<meta charset="utf-8">
+		<style type="text/css">
+		#container { width:640px; margin: 0 auto; text-align: center; }
+		#port { border: 1px solid #000 }
+		</style>
+	</head>
+	<body>
+		<div id="container">
+			<h1>Web Socket Streamer</h1>
+			<canvas id="port" width="640" height="480"></canvas>
+		</div>
+		
+		<div id="play-buttons">
+		
+			
+		
+		</div>
+		
+		<script type="text/javascript">
+		var canvas = document.getElementById("port").getContext("2d");
+		
+		var websocket = new WebSocket("http://localhost:8080/MJpegStreamer/wss");
+		
+		</script>
+	</body>
+</html>
