@@ -8,6 +8,7 @@
 package au.edu.remotelabs.mjpeg;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
@@ -22,21 +23,25 @@ import javax.websocket.server.ServerEndpoint;
  * as the HTTP version) either binary encoded or based 64 encoded (to generate
  * data URLs).
  */
-@ServerEndpoint("/wss")
+@ServerEndpoint("/ws")
 public class StreamerEndpoint 
 {
+    /** Holder of streamer objects. */
+    private final StreamerHolder holder;
+    
+    /** Logger. */
+    private final Logger logger;
+    
     public StreamerEndpoint()
     {
-        System.out.println("Craeting end point instance.");
+        this.logger = Logger.getLogger(getClass().getName());
+        this.holder = StreamerHolder.get();
     }
-    
 
     @OnOpen
     public void start(Session session, EndpointConfig config)
     {
-        System.out.println("Start conversation.");
-        // TODO Auto-generated method stub
-
+        
     }
     
     @OnMessage

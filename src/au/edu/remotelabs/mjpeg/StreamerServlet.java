@@ -8,9 +8,6 @@
 package au.edu.remotelabs.mjpeg;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
@@ -25,7 +22,6 @@ import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
 import au.edu.remotelabs.mjpeg.dest.JpegOutput;
 import au.edu.remotelabs.mjpeg.dest.MJpegOutput;
 import au.edu.remotelabs.mjpeg.dest.StreamOutput;
-import au.edu.remotelabs.mjpeg.source.SourceStream;
 
 /**
  * Servlet to serve MJpeg streams. 
@@ -36,19 +32,13 @@ import au.edu.remotelabs.mjpeg.source.SourceStream;
             initParams = { @WebInitParam(name = "streams-config", value = "./WebContent/META-INF/streams-config.xml") })
 public class StreamerServlet extends HttpServlet 
 {
+    private static final long serialVersionUID = 1L;
+    
     /** Url pattern for servlet. */
     public final static String PATH = "/streams/";
     
-    private static final long serialVersionUID = 1L;
-    
-    /** Streams. */
-    private final Map<String, SourceStream> streams;
-    
-    /** Streamer configuration. */
-    private StreamerConfig config;
-    
-    /** Authenticator of streams. */
-    private Authenticator authenticator;
+    /** Holder for streamer objects. */
+    private final StreamerHolder holder;
     
     /** Logger. */
     private final Logger logger;
@@ -58,8 +48,7 @@ public class StreamerServlet extends HttpServlet
         super();
         
         this.logger = Logger.getLogger(getClass().getName());
-        
-        this.streams = new HashMap<>();
+        this.holder = StreamerHolder.get();
     }
 
     @Override
@@ -72,27 +61,20 @@ public class StreamerServlet extends HttpServlet
             throw new ServletException("Configuration file location not configured.");
         }
     
-        this.config = new StreamerConfig(conf);
-        
-        for (Stream stream : this.config.getStreams().values())
-        {
-            this.logger.fine("Loaded configuration for stream: " + stream.name);
-            this.streams.put(stream.name, new SourceStream(stream));
-        }
-        
-        this.authenticator = new Authenticator(this.config);
+        this.holder.init(conf);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException 
     {
+        String url = request.getRequestURI();
+        url = url.substring(url.indexOf(PATH) + PATH.length());
+        
         /*
          * URL format will be: 
          *  <PATH>/<camera>.[jpeg|mjpg][?<options>]
          */
-        String url = request.getRequestURI();
-        url = url.substring(url.indexOf(PATH) + PATH.length());
         
         int s = url.indexOf('.');
         if (s < 1)
@@ -102,7 +84,7 @@ public class StreamerServlet extends HttpServlet
             return;
         }
         
-        Stream stream = this.config.getStream(url.substring(0, s));
+        Stream stream = this.holder.getStreamConfig(url.substring(0, s));
         if (stream == null)
         {
             /* Camera with name not found, 404 response. */
@@ -110,7 +92,7 @@ public class StreamerServlet extends HttpServlet
             return;
         }
         
-        if (!this.authenticator.authenticate(stream, request.getParameter("pw")))
+        if (!this.holder.getAuthenticator().authenticate(stream, request.getParameter("pw")))
         {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -129,11 +111,11 @@ public class StreamerServlet extends HttpServlet
         switch (format)
         {
         case "jpeg":
-            out = new JpegOutput(response, request.getParameterMap(), this.streams.get(stream.name));
+            out = new JpegOutput(response, request.getParameterMap(), this.holder.getStream(stream.name));
             break;
             
         case "mjpg":
-            out = new MJpegOutput(response, request.getParameterMap(), this.streams.get(stream.name));
+            out = new MJpegOutput(response, request.getParameterMap(), this.holder.getStream(stream.name));
             break;
             
         default:
@@ -157,11 +139,7 @@ public class StreamerServlet extends HttpServlet
     @Override
     public void destroy()
     {
-        for (Entry<String, SourceStream> e : this.streams.entrySet())
-        {
-            e.getValue().stop();
-        }
-        
+        this.holder.destroy();
         super.destroy();
     }
 
