@@ -21,7 +21,7 @@ import au.edu.remotelabs.mjpeg.source.SourceStream;
 public class JpegOutput extends StreamOutput
 {
 
-    public JpegOutput(HttpServletResponse resp, Map<String, String[]> params, SourceStream source)
+    public JpegOutput(HttpServletResponse resp, Map<String, String> params, SourceStream source)
     {
         super(resp, params, source);
     }

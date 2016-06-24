@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
-import au.edu.remotelabs.mjpeg.dest.StreamOutput;
 
 /**
  * Decomposes a M-JPEG stream down to its frames.
@@ -48,7 +47,7 @@ public class SourceStream implements Runnable
     private boolean stop;
 
     /** List of destination streams that provides M-JPEG streams to clients. */
-    private final List<StreamOutput> destinations;
+    private final List<Object> destinations;
     
     /** Logger. */
     private final Logger logger;
@@ -65,7 +64,7 @@ public class SourceStream implements Runnable
             this.start();
         }
         
-        this.destinations = Collections.synchronizedList(new ArrayList<StreamOutput>());
+        this.destinations = Collections.synchronizedList(new ArrayList<Object>());
     }
     
     /**
@@ -73,7 +72,7 @@ public class SourceStream implements Runnable
      * 
      * @param output the destination output being registered
      */
-    public void register(StreamOutput output)
+    public void register(Object output)
     {
         synchronized (this.destinations)
         {
@@ -88,7 +87,7 @@ public class SourceStream implements Runnable
      * 
      * @param output the destination output being unregistered
      */
-    public void unregister(StreamOutput output)
+    public void unregister(Object output)
     {
         synchronized (this.destinations)
         {

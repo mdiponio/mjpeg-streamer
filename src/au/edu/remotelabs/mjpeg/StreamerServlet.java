@@ -8,6 +8,8 @@
 package au.edu.remotelabs.mjpeg;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
@@ -111,11 +113,11 @@ public class StreamerServlet extends HttpServlet
         switch (format)
         {
         case "jpeg":
-            out = new JpegOutput(response, request.getParameterMap(), this.holder.getStream(stream.name));
+            out = new JpegOutput(response, this.getParams(request), this.holder.getStream(stream.name));
             break;
             
         case "mjpg":
-            out = new MJpegOutput(response, request.getParameterMap(), this.holder.getStream(stream.name));
+            out = new MJpegOutput(response, this.getParams(request), this.holder.getStream(stream.name));
             break;
             
         default:
@@ -143,4 +145,11 @@ public class StreamerServlet extends HttpServlet
         super.destroy();
     }
 
+    private Map<String, String> getParams(HttpServletRequest request)
+    {
+        Map<String, String[]> p = request.getParameterMap();
+        Map<String, String> cp = new HashMap<>(p.size());
+        p.forEach((String k, String v[]) -> cp.put(k, v[0]));
+        return cp;
+    }
 }

@@ -11,6 +11,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
+import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
@@ -36,7 +38,7 @@ public class Frame
      */
     public Frame(String mime, byte data[])
     {
-        this.mime = mime;
+        this.mime = mime.trim();
         this.buf = data;
         this.timestamp = System.currentTimeMillis();
     }
@@ -60,6 +62,16 @@ public class Frame
     public void writeTo(OutputStream stream) throws IOException
     {
         stream.write(this.buf);
+    }
+    
+    /**
+     * Write a Base64 encoded string to the stream.
+     * 
+     * @param stream writer stream to output to
+     */
+    public void writeTo(Writer stream) throws IOException
+    {
+        stream.write(Base64.getMimeEncoder().encodeToString(this.buf));
     }
     
     /**

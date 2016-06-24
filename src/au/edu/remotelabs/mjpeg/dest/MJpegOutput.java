@@ -30,13 +30,13 @@ public class MJpegOutput extends StreamOutput
     /** Timestamp when a frame was last sent. */
     private long sent;
 
-    public MJpegOutput(HttpServletResponse resp, Map<String, String[]> params, SourceStream source)
+    public MJpegOutput(HttpServletResponse resp, Map<String, String> params, SourceStream source)
     {
         super(resp, params, source);
         
         int rate = 0;
-        if (params.containsKey("fr")) rate = Integer.parseInt(params.get("fr")[0]);
-        if (params.containsKey("frame_rate")) rate = Integer.parseInt(params.get("frame_rate")[0]);
+        if (params.containsKey("fr")) rate = Integer.parseInt(params.get("fr"));
+        if (params.containsKey("frame_rate")) rate = Integer.parseInt(params.get("frame_rate"));
         
         if (rate > 0)
         {

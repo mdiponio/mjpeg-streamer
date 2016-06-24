@@ -60,7 +60,7 @@ public class FrameTransformer
     /** Frame transformer instances. */
     private static Map<FrameTransformer, Integer> instances = new HashMap<>();
     
-    private FrameTransformer(String name, Map<String, String[]> request)
+    private FrameTransformer(String name, Map<String, String> request)
     {
         this.name = name;
         
@@ -70,7 +70,7 @@ public class FrameTransformer
         List<TransformOp> opsList = new ArrayList<>();
         Map<String, String> paramMap = new HashMap<>();
         
-        for (Entry<String, String[]> p : request.entrySet())
+        for (Entry<String, String> p : request.entrySet())
         {
             if (TRANSFORMS.containsKey(p.getKey()))
             {
@@ -78,12 +78,12 @@ public class FrameTransformer
                 {
                     /* Create the transform. */
                     TransformOp op = TRANSFORMS.get(p.getKey()).newInstance();
-                    op.configure(p.getValue()[0]);
+                    op.configure(p.getValue());
                     opsList.add(op);
                     
                     /* Store the params parameter to allow transformer instances to
                      * be reused across identical params. */
-                    paramMap.put(p.getKey(), p.getValue()[0]);
+                    paramMap.put(p.getKey(), p.getValue());
                 }
                 catch (InstantiationException | IllegalAccessException e)
                 {
@@ -198,7 +198,7 @@ public class FrameTransformer
      * @param params request params
      * @return true if this matches requests
      */
-    private boolean match(String name, Map<String, String[]> params)
+    private boolean match(String name, Map<String, String> params)
     {
         /* Must be same source. */
         if (!this.name.equals(name)) return false;
@@ -206,11 +206,11 @@ public class FrameTransformer
         /* To match we need to do all operations requested and no more. */
         if (this.params.size() > params.size()) return false;
         
-        Map<String, String[]> cp = new HashMap<>(params);
+        Map<String, String> cp = new HashMap<>(params);
         for (Entry<String, String> p : this.params.entrySet())
         {
             if (!cp.containsKey(p.getKey()) || 
-                !cp.get(p.getKey())[0].equals(p.getValue())) return false;
+                !cp.get(p.getKey()).equals(p.getValue())) return false;
             
             cp.remove(p.getKey());
         }
@@ -232,7 +232,7 @@ public class FrameTransformer
      * @param params request parameters
      * @return transformer instances
      */
-    public static synchronized FrameTransformer get(SourceStream source, Map<String, String[]> params)
+    public static synchronized FrameTransformer get(SourceStream source, Map<String, String> params)
     {
         for (FrameTransformer tr : instances.keySet())
         {

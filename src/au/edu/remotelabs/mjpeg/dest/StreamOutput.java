@@ -32,7 +32,7 @@ public abstract class StreamOutput
     protected OutputStream output;
     
     /** Request parameters. */
-    protected final Map<String, String[]> requestParams;
+    protected final Map<String, String> requestParams;
     
     /** Source stream that is being returned. */
     protected final SourceStream source;
@@ -43,7 +43,7 @@ public abstract class StreamOutput
     /** Logger. */
     protected final Logger logger;
     
-    public StreamOutput(HttpServletResponse resp, Map<String, String[]> params, SourceStream source)
+    public StreamOutput(HttpServletResponse resp, Map<String, String> params, SourceStream source)
     {
         this.logger = Logger.getLogger(getClass().getName());
         
@@ -64,15 +64,14 @@ public abstract class StreamOutput
         {
             this.source.register(this);
             
-            /* Write generic headers. */
             this.response.addHeader("Server", "MJpeg-Streamer/1.0; UTS");
             this.response.setCharacterEncoding("UTF-8");
+                
+            this.output = this.response.getOutputStream();
             
             /* Write headers. */
             this.writeHeaders();
-            
-            this.output = this.response.getOutputStream();
-            
+
             Frame frame;
             
             boolean cont = true;
