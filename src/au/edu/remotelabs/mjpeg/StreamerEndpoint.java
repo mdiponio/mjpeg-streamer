@@ -24,6 +24,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
+import au.edu.remotelabs.mjpeg.source.SourceStream;
 import au.edu.remotelabs.mjpeg.ws.WebSocketOutput;
 
 /**
@@ -70,13 +71,19 @@ public class StreamerEndpoint
                 return;
             }
             
+            SourceStream source = this.holder.getStream(stream.name);
+            if (source.isDisabled()) 
+            {
+                session.close(new CloseReason(CloseCodes.CANNOT_ACCEPT, "Stream disabled"));
+                return;
+            }
+            
             String pw = params.containsKey("pw") ? params.get("pw").get(0) : null;
             if (!this.holder.getAuthenticator().authenticate(stream, pw))
             {
                 session.close(new CloseReason(CloseCodes.CANNOT_ACCEPT, "Auth failed"));
                 return;
             }
-            
             
             this.logger.fine("Accepting web socket stream request for stream " + stream.name + 
                     ", session " + session.getId());

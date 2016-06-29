@@ -37,6 +37,9 @@ public class SourceStream implements Runnable
     /** Whether an error has occurred accessing the stream. */
     private boolean error;
     
+    /** Whether this stream has been disabled. */
+    private volatile boolean disabled;
+    
     /** The last error that occurred. */
     private String errorReason;
     
@@ -68,18 +71,60 @@ public class SourceStream implements Runnable
     }
     
     /**
-     * Register to receive frames when acquired from this stream source.
-     * 
-     * @param output the destination output being registered
+     * Enable this stream so it can be accessed.
      */
-    public void register(Object output)
+    public void enable()
     {
         synchronized (this.destinations)
         {
+            if (this.disabled)
+            {
+                this.disabled = false;
+                if (!this.config.ondemand) this.start();
+            }
+        }
+    }
+    
+    /**
+     * Disables this stream so it can not be accessed.
+     */
+    public void disable()
+    {   
+        synchronized (this.destinations)
+        {
+            if (!this.disabled)
+            {
+                this.disabled = true;
+                
+                if (this.destinations.size() > 0)
+                {
+                    this.destinations.clear();
+                    if (this.isReading()) this.stop();
+                }
+            }
+        }
+    }
+    
+    /**
+     * Register to receive frames when acquired from this stream source.
+     * 
+     * @param output the destination output being registered
+     * @return whether successfully registered
+     */
+    public boolean register(Object output)
+    {
+        if (this.disabled) return false;
+        
+        synchronized (this.destinations)
+        {
+            if (this.disabled) return false;
+            
             /* If not actively reading from the stream, spool up connection. */
             this.destinations.add(output);
             if (!this.isReading()) this.start();        
         }
+        
+        return true;
     }
     
     /**
@@ -424,6 +469,16 @@ public class SourceStream implements Runnable
     public boolean isErrored()
     {
         return this.error;
+    }
+    
+    /**
+     * Checks whether the stream has been disabled.
+     * 
+     * @return true if disabled
+     */
+    public boolean isDisabled()
+    {
+        return this.disabled;
     }
     
     /**

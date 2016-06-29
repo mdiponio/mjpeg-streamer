@@ -91,8 +91,8 @@
         
         function createImage(data) 
         {
-            createImageBitmap(data).then(function(bitmap) {
-            //createImageBitmap(data.slice(0, data.length, "image/jpeg")).then(function(bitmap) {
+            //createImageBitmap(data).then(function(bitmap) {
+            createImageBitmap(data.slice(0, data.length, "image/jpeg")).then(function(bitmap) {
                 context.drawImage(bitmap, 0, 0);
             });
         }

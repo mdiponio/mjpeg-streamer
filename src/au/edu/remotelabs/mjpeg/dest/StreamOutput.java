@@ -62,7 +62,7 @@ public abstract class StreamOutput
     {
         try
         {
-            this.source.register(this);
+            if (!this.source.register(this)) return;
             
             this.response.addHeader("Server", "MJpeg-Streamer/1.0; UTS");
             this.response.setCharacterEncoding("UTF-8");

@@ -24,6 +24,7 @@ import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
 import au.edu.remotelabs.mjpeg.dest.JpegOutput;
 import au.edu.remotelabs.mjpeg.dest.MJpegOutput;
 import au.edu.remotelabs.mjpeg.dest.StreamOutput;
+import au.edu.remotelabs.mjpeg.source.SourceStream;
 
 /**
  * Servlet to serve MJpeg streams. 
@@ -99,7 +100,13 @@ public class StreamerServlet extends HttpServlet
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-
+        
+        SourceStream source = this.holder.getStream(stream.name);
+        if (source.isDisabled())
+        {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return;
+        }
 
         String format = url.substring(s + 1);
         if (!("jpeg".equalsIgnoreCase(format) || 
@@ -113,11 +120,11 @@ public class StreamerServlet extends HttpServlet
         switch (format)
         {
         case "jpeg":
-            out = new JpegOutput(response, this.getParams(request), this.holder.getStream(stream.name));
+            out = new JpegOutput(response, this.getParams(request), source);
             break;
             
         case "mjpg":
-            out = new MJpegOutput(response, this.getParams(request), this.holder.getStream(stream.name));
+            out = new MJpegOutput(response, this.getParams(request), source);
             break;
             
         default:
