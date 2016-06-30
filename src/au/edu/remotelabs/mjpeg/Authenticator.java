@@ -85,6 +85,17 @@ public class Authenticator
     }
     
     /**
+     * Gets the password for the stream.
+     * 
+     * @param stream stream configuration
+     * @return password to access stream
+     */
+    public String getPassword(Stream stream)
+    {
+        return this.passwords.get(stream);
+    }
+    
+    /**
      * Generates a random password with 8 characters consisting numeric, lower
      * and upper case characters.
      * 

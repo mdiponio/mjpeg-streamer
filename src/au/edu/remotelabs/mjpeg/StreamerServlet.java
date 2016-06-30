@@ -24,6 +24,7 @@ import au.edu.remotelabs.mjpeg.StreamerConfig.Stream;
 import au.edu.remotelabs.mjpeg.dest.JpegOutput;
 import au.edu.remotelabs.mjpeg.dest.MJpegOutput;
 import au.edu.remotelabs.mjpeg.dest.StreamOutput;
+import au.edu.remotelabs.mjpeg.source.Frame;
 import au.edu.remotelabs.mjpeg.source.SourceStream;
 
 /**
@@ -110,7 +111,8 @@ public class StreamerServlet extends HttpServlet
 
         String format = url.substring(s + 1);
         if (!("jpeg".equalsIgnoreCase(format) || 
-              "mjpg".equalsIgnoreCase(format)))
+              "mjpg".equalsIgnoreCase(format) ||
+              "last".equalsIgnoreCase(format)))
         {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
@@ -126,6 +128,16 @@ public class StreamerServlet extends HttpServlet
         case "mjpg":
             out = new MJpegOutput(response, this.getParams(request), source);
             break;
+            
+        case "last": // Special output format where only the last frame acquired is returned 
+            Frame last = source.getLastFrame();
+            if (last != null)
+            {
+                response.setContentType(last.getContentType());
+                response.setContentLength(last.getContentLength());
+                last.writeTo(response.getOutputStream());
+            }
+            return;
             
         default:
             /* Whatever format was requested was not understood, return bad request. */

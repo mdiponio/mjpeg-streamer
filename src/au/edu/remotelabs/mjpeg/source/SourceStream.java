@@ -507,6 +507,16 @@ public class SourceStream implements Runnable
     }
     
     /**
+     * Returns the number of reading streams.
+     * 
+     * @return number of accessing streams
+     */
+    public int numStreams()
+    {
+        return this.destinations.size();
+    }
+    
+    /**
      * Checks whether there has been an error reading source stream.
      * 
      * @return true if reading error
