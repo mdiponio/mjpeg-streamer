@@ -7,7 +7,6 @@
 		 		 au.edu.remotelabs.mjpeg.StreamerHolder,
 		 	     au.edu.remotelabs.mjpeg.StreamerConfig.Stream,
 		 	     au.edu.remotelabs.mjpeg.source.SourceStream" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -95,7 +94,7 @@
 						<ul>
 							<li><a href="<%= url + ".jpeg" + options %>">JPEG</a></li>
 							<li><a href="<%= url + ".mjpg" + options %>">M-JPEG</a></li>
-							<li><a href="<%= base + "/websocket.jsp?stream=" + stream.name %>">WebSocket</a></li>
+							<li><a href="<%= base + "websocket.jsp?stream=" + stream.name %>">WebSocket</a></li>
 						</ul>
 					</td>
 					<td>

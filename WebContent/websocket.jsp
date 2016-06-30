@@ -1,9 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
-
+<% String stream = request.getParameter("stream"); %>
 <!DOCTYPE html>
 <html>
 <head>
-	<title>WebSocket: <%= request.getParameter("stream") %></title>
+	<title>WebSocket: <%= stream %></title>
 	<meta charset="utf-8">
 	<style type="text/css">
 	#container {
@@ -23,7 +23,7 @@
 </head>
 <body>
 	<div id="container">
-		<h1>WebSocket client to stream: <%= request.getParameter("stream") %></h1>
+		<h1>WebSocket client to stream: <%= stream %></h1>
 		<canvas id="port" width="640" height="480"></canvas>
 
 		<div id="play-buttons">
@@ -38,7 +38,7 @@
 	</div>
 
 	<script type="text/javascript">
-        var canvas, ws, context, auto = false, bin = false;
+        var canvas, ws, context, auto = false, bin = false, img = new Image();
 
         canvas = document.getElementById("port");
         context = canvas.getContext("2d");
@@ -50,15 +50,22 @@
             bin = document.getElementById("is-bin").checked;
             auto = document.getElementById("is-auto").checked;
 
-            ws = new WebSocket(
-                    "ws://138.25.215.71:8080/MJpegStreamer/ws?stream=vivo&timestamp=t" + (bin ? "&bin=t" : ""));
-            ws.onerror = function(error)
-            {
+            <%  /* Web socket URL. */
+            	String url = request.getRequestURI();
+		    	int fp = url.indexOf("websocket.jsp");
+		    	if (fp > 0) url = url.substring(0, fp);
+
+		    	url += "ws?stream=" + stream + "&timestamp=t&size=640x480";
+		    	
+		    	url = "ws://" + request.getLocalAddr() + ":" + request.getServerPort() + url;
+		    %>
+            
+            ws = new WebSocket("<%= url %>" + (bin ? "&bin=t" : ""));
+            ws.onerror = function(error) {
                 console.log(error)
             };
 
-            ws.onmessage = function(message)
-            {
+            ws.onmessage = function(message) {
 				if (bin)
 				{
                 	binImage(message.data);
@@ -84,8 +91,7 @@
             };
         };
 
-        document.getElementById("send-button").onclick = function()
-        {
+        document.getElementById("send-button").onclick = function() {
             if (ws && ws.readyState == WebSocket.OPEN)
             {
                 var message = document.getElementById("send-text").value;
@@ -94,8 +100,7 @@
             }
         };
 
-        document.getElementById("close-button").onclick = function()
-        {
+        document.getElementById("close-button").onclick = function() {
             if (ws && ws.readyState != WebSocket.CLOSED)
             {
                 console.log("Closing connection.");
@@ -113,15 +118,14 @@
 
         function dataImage(data)
         {
-            var img = new Image();
-            img.onload = function()
-            {
+            img.onload = function() {
+                context.clearRect(0, 0, 640, 480);
                 context.drawImage(img, 0, 0);
+                img.src = "#";
             };
             img.width = 640;
             img.height = 480;
-            img.src = bin ? URL.createObjectURL(data.slice(0, data.length,
-                    "image/jpeg")) : data;
+            img.src = data;
         }
     </script>
 </body>
