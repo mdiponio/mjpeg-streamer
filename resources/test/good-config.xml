@@ -41,7 +41,7 @@
             <name>shaker1</name>
             <url>http://138.25.49.22/camera1.mjpg</url>
             <auth>
-                <type>HTTP</type>
+                <type>BASIC</type>
                 <username>user</username>
                 <password>pass</password>
             </auth>

@@ -295,9 +295,9 @@ public class StreamerConfig
     public static class Stream
     {
         /** Supported authentication types. */
-        enum AuthType {
-            NONE, // No Authentication 
-            HTTP  // HTTP basic authentication
+        public enum AuthType {
+            NONE,  // No Authentication 
+            BASIC  // HTTP basic authentication
         }
 
         /** The name of the stream which forms part of access stream URLs. */

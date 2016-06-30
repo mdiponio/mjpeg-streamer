@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -188,7 +189,29 @@ public class SourceStream implements Runnable
             
             /* The timeout ensure that we don't indefinitely block destinations because the
              * source is not currently available. */
-            conn.setConnectTimeout(2000);
+            conn.setConnectTimeout(1000);
+            
+            /* If authentication is configured, add authentication headers to request. */
+            switch (this.config.authType)
+            {
+            case BASIC:
+                if (!this.addBasicAuth(conn)) return;
+                break;
+                
+            case NONE:
+                /* Falls through. */
+            default:
+                /* No authentication is required. */
+            }
+            
+            /* Make sure the response status does not indicate an error. */
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
+            {
+                this.logger.warning("Failed to read camera M-JPEG stream, response code is " + conn.getResponseCode());
+                this.error = true;
+                this.errorReason = "HTTP response code is " + conn.getResponseCode();
+                return;
+            }
             
             /* Read boundary from content type header. */
             String contentType = conn.getContentType();
@@ -288,9 +311,31 @@ public class SourceStream implements Runnable
             }
         }
     }
-        
-      
     
+    /**
+     * Adds basic authentication header to camera connection.
+     * 
+     * @param conn connection to camera
+     * @return whether authentication header added
+     */
+    private boolean addBasicAuth(HttpURLConnection conn)
+    {
+        if (!(this.config.authParams.containsKey("username") && this.config.authParams.containsKey("password")))
+        {
+            this.logger.severe("Cannot add basic authentication to camera request because the username or " +
+                     "password was not correctly configured.");
+            this.error = true;
+            this.errorReason = "";
+            return false;
+        }
+       
+        String encoded = Base64.getMimeEncoder().encodeToString((
+                this.config.authParams.get("username") + ':' + this.config.authParams.get("password")).getBytes());
+       
+        conn.addRequestProperty("Authorization", "Basic " + encoded); 
+        return true;
+    }
+
     /**
      * Stops the reading source stream.
      */

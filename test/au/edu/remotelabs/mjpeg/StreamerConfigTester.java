@@ -53,7 +53,7 @@ public class StreamerConfigTester
         assertEquals("shaker1", shaker1.name);
         assertEquals("http://138.25.49.22/camera1.mjpg", shaker1.source.toString());
         
-        assertEquals(Stream.AuthType.HTTP, shaker1.authType);
+        assertEquals(Stream.AuthType.BASIC, shaker1.authType);
         assertEquals(2, shaker1.authParams.size());
         assertEquals("user", shaker1.authParams.get("username"));
         assertEquals("pass", shaker1.authParams.get("password"));

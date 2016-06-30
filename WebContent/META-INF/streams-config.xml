@@ -40,11 +40,6 @@
         <stream>
             <name>shaker1</name>
             <url>http://138.25.49.22/camera1.mjpg</url>
-            <auth>
-                <type>HTTP</type>
-                <username>user</username>
-                <password>pass</password>
-            </auth>
             <format> 
                 <boundary>abc123</boundary>
             </format>
@@ -59,6 +54,15 @@
         <stream>
             <name>dummy</name>
             <url>http://138.25.49.17</url>
+        </stream>
+        <stream>
+            <name>vivo</name>
+            <url>http://192.168.1.3/video.mjpeg</url>
+            <auth>
+                <type>BASIC</type>
+                <username>vivo</username>
+                <password>vivopasswd</password>
+            </auth>
         </stream>
     </streams>
 </streamer>

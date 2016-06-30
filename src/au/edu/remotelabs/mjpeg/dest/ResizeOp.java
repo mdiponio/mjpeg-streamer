@@ -35,10 +35,8 @@ public class ResizeOp implements TransformOp
     public boolean configure(String param)
     {
         /* Param format is <width>x<height[,keepRatio]. */
-        
         try
         {
-            System.out.println("Resize image: " + param); 
             int xp = param.indexOf('x');
             if (xp == -1) return false;
             
