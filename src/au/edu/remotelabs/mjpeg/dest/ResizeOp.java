@@ -90,7 +90,7 @@ public class ResizeOp implements TransformOp
         
         BufferedImage sizedImage = new BufferedImage(this.width, this.height, image.getType());
         Graphics2D canvas = sizedImage.createGraphics();
-        canvas.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        canvas.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         canvas.drawImage(image, this.transform, null);
         canvas.dispose();
         

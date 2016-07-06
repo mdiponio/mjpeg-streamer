@@ -92,7 +92,7 @@ public class Authenticator
      */
     public String getPassword(Stream stream)
     {
-        return this.passwords.get(stream);
+        return this.passwords.get(stream.name);
     }
     
     /**

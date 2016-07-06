@@ -139,28 +139,22 @@ public class ApiServlet extends HttpServlet
         String operation = request.getRequestURI().substring(request.getRequestURI().indexOf(PATH) + PATH.length()); 
         switch (operation)
         {
-        case "resetPassword": // Reset the password.
-            String password = this.holder.getAuthenticator().reset(stream);
-            if (password == null)
-            {
-                this.logger.warning("Cannot reset password for " + stream.name + ", probably because password reset is disabled.");
-                response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
-            }
-            else
-            {
-                this.logger.info("Reset access password of " + stream.name + " to " + password);
-                response.setStatus(HttpServletResponse.SC_OK);
-                System.out.println(password);
-                response.getWriter().println(password);
-            }
+        case "resetPassword":  // Reset the password.
+            this.resetPassword(response, stream);
             break;
             
-        case "enable":  // Enable access to the stream
+        case "resetAndEnable": // Reset password and enable stream
+            if (this.resetPassword(response, stream))
+            {
+                this.holder.getStream(stream.name).enable();
+            }
+            
+        case "enable":         // Enable access to the stream
             this.logger.info("Enabling stream " + stream.name);
             this.holder.getStream(stream.name).enable();
             break;
             
-        case "disable": // Disable access to the stream
+        case "disable":        // Disable access to the stream
             this.logger.info("Disabling stream " + stream.name);
             this.holder.getStream(stream.name).disable();
             break;
@@ -171,6 +165,32 @@ public class ApiServlet extends HttpServlet
             break;
         }
         
+    }
+
+    /**
+     * Resets a stream password.
+     * 
+     * @param response request response
+     * @param stream stream to reset
+     * @return whether password reset was successful
+     * @throws IOException error sending response
+     */
+    private boolean resetPassword(HttpServletResponse response, Stream stream) throws IOException
+    {
+        String password = this.holder.getAuthenticator().reset(stream);
+        if (password == null)
+        {
+            this.logger.warning("Cannot reset password for " + stream.name + ", probably because password reset is disabled.");
+            response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
+            return false;
+        }
+        else
+        {
+            this.logger.info("Reset access password of " + stream.name + " to " + password);
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().println(password);
+            return true;
+        }
     }
     
     /**

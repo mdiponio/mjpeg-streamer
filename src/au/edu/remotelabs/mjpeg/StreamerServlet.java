@@ -7,6 +7,7 @@
 
 package au.edu.remotelabs.mjpeg;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,10 +31,10 @@ import au.edu.remotelabs.mjpeg.source.SourceStream;
 /**
  * Servlet to serve MJpeg streams. 
  */
-@WebServlet(name="StreamsServlet",
+@WebServlet(name="StreamerServlet",
             urlPatterns = StreamerServlet.PATH + "*", 
             loadOnStartup = 1,
-            initParams = { @WebInitParam(name = "streams-config", value = "./WebContent/META-INF/streams-config.xml") })
+            initParams = { @WebInitParam(name = "streamer-config", value = "/etc/streamer-config.xml") })
 public class StreamerServlet extends HttpServlet 
 {
     private static final long serialVersionUID = 1L;
@@ -58,11 +59,15 @@ public class StreamerServlet extends HttpServlet
     @Override
     public void init(ServletConfig config) throws ServletException 
     {
-        String conf = config.getInitParameter("streams-config");
-        if (conf == null)
+        String conf = config.getInitParameter("streamer-config");
+        if (conf == null || !(new File(conf)).canRead())
         {
-            this.logger.severe("Configuration file for streamer application has not been configured.");
-            throw new ServletException("Configuration file location not configured.");
+            conf = System.getenv("STREAMER_CONFIG");
+            if (conf == null || !(new File(conf).canRead()))
+            {
+                this.logger.severe("Configuration file for streamer application has not been configured.");
+                throw new ServletException("Configuration file location not configured.");
+            }
         }
     
         this.holder.init(conf);

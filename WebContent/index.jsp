@@ -6,7 +6,19 @@
 		 		 au.edu.remotelabs.mjpeg.Authenticator,
 		 		 au.edu.remotelabs.mjpeg.StreamerHolder,
 		 	     au.edu.remotelabs.mjpeg.StreamerConfig.Stream,
+		 	     au.edu.remotelabs.mjpeg.dash.DashboardAuth,
 		 	     au.edu.remotelabs.mjpeg.source.SourceStream" %>
+		 	     
+<% 
+	/* Basic authentication. */
+	if (!DashboardAuth.authenticate(request))
+	{
+	    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	    response.setHeader("WWW-Authenticate", "Basic realm=\"M-Jpeg Streamer\"");
+	    return;
+	}
+%>		 	     
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -36,15 +48,28 @@
 	td, th {
 		border: 1px solid #000000;
 		padding: 5px;
+		text-align: center;
 	}
 	
 	td:last-child {
+		text-align: left;
 		width: 400px;
+	}
+	
+	td:nth-child(2) {
+		text-align: left;
 	}
 	
 	ul {
 		margin-left: -15px;
 		margin-right: 15px;
+	}
+	
+	button {
+		display: inline-block;
+		padding: 2px;
+		margin: 2px;
+		cursor: pointer;
 	}
 	
 	img {
@@ -58,6 +83,7 @@
 	.error {
 		color: red;
 	}
+	
 	</style>
 </head>
 <body>
@@ -68,6 +94,7 @@
 				<tr>
 					<th>Stream</th>
 					<th>URLs</th>
+					<th>Operations</th>
 					<th>Last Acquired</th>
 					<th>Enabled</th>
 					<th>Reading</th>
@@ -98,8 +125,17 @@
 						</ul>
 					</td>
 					<td>
+					<% if (source.isDisabled()) { %>
+						 <button data-action="enable" data-stream="<%= stream.name %>" type="button">Enable</button>
+					<% } else { %>
+						 <button data-action="disable" data-stream="<%= stream.name %>" type="button">Disable</button>
+					<% } %>
+						
+						 <button data-action="reset" data-stream="<%= stream.name %>" type="button">Reset Password</button>
+					</td>
+					<td>
 					<% if (source.getLastFrame() != null) { %>
-						<a href="<%= url + ".last" %>"><img src="<%= url + ".last" %>" alt="none"></a>
+						<a href="<%= url + ".last" + options %>"><img src="<%= url + ".last" + options %>" alt=""></a>
 					<% } else { %>
 						<i>None</i>	
 					<% } %>
@@ -114,5 +150,46 @@
 		</table>
 		<p>Last updated: <%= LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy kk:mm:ss")) %>
 	</div>
+	
+	<script type="text/javascript">
+	var buttons = document.getElementsByTagName("button"), i;
+	
+	for (i = 0; i < buttons.length; i++)
+	{
+	 	switch (buttons[i].getAttribute("data-action"))
+	 	{
+	 	case "enable":
+	 	    buttons[i].onclick = function() {
+				enableStream(this.getAttribute("data-stream"));
+	 	    };
+	 	    break;
+	 	    
+	 	case "disable":
+	 	   	buttons[i].onclick = function() {
+	 	    	disableStream(this.getAttribute("data-stream"));
+	 		};
+	 	    break;
+	 	    
+	 	case "reset":
+	 	    buttons[i].onclick = function() {
+	 	    	resetPassword(this.getAttribute("data-stream"));
+	 		};
+	 	    break;
+	 	}
+	}
+	
+	function enableStream(stream) {
+		alert("Enable: " + stream);    
+	};
+	
+	function disableStream(stream) {
+	  	alert("Disable: " + stream);  
+	};
+	
+	function resetPassword(stream) {
+	    alert("Reset: " + stream);
+	}
+	
+	</script>
 </body>
 </html>

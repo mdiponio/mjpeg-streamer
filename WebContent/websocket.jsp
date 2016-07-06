@@ -1,4 +1,16 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"
+    import="au.edu.remotelabs.mjpeg.dash.DashboardAuth" %>
+
+<% 
+	/* Basic authentication. */
+	if (!DashboardAuth.authenticate(request))
+	{
+	    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	    response.setHeader("WWW-Authenticate", "Basic realm=\"M-Jpeg Streamer\"");
+	    return;
+	}
+%>	
+
 <% String stream = request.getParameter("stream"); %>
 <!DOCTYPE html>
 <html>
