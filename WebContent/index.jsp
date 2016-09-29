@@ -1,8 +1,7 @@
 <%@ page language="java" 
          contentType="text/html; charset=UTF-8"
 		 pageEncoding="UTF-8" 
-		 import="java.time.LocalDateTime,
-		 		 java.time.format.DateTimeFormatter,
+		 import="java.util.Date,
 		 		 au.edu.remotelabs.mjpeg.Authenticator,
 		 		 au.edu.remotelabs.mjpeg.StreamerHolder,
 		 	     au.edu.remotelabs.mjpeg.StreamerConfig.Stream,
@@ -148,7 +147,7 @@
 				<% } %>
 			</tbody>
 		</table>
-		<p>Last updated: <%= LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy kk:mm:ss")) %>
+		<p>Last updated: <%= new Date() %>
 	</div>
 	
 	<script type="text/javascript">

@@ -222,6 +222,10 @@ public class SourceStream implements Runnable
                 if (pos > 0)
                 {
                     this.boundary = "--" + contentType.substring(pos + boundaryTag.length());
+                    if (this.boundary.contains(";"))
+                    {
+                        this.boundary = this.boundary.substring(0, this.boundary.indexOf(';'));
+                    }
                     this.logger.info("Loaded stream " + this.config.name + " boundary as " + boundary);
                 }
             }

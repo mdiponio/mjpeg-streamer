@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
@@ -48,7 +49,11 @@ public class WebSocketOutput
         
         Map<String, List<String>> params = session.getRequestParameterMap();
         this.requestParams = new HashMap<>(params.size());
-        params.forEach((String k, List<String> v) -> this.requestParams.put(k, v.get(0)));
+        
+        for (Entry<String, List<String>> e : params.entrySet())
+        {
+            this.requestParams.put(e.getKey(), e.getValue().get(0));
+        }
         
         this.transformer = FrameTransformer.get(this.source, this.requestParams);
         

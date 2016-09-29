@@ -238,7 +238,7 @@ public class FrameTransformer
         {
             if (tr.match(source.getName(), params)) 
             {
-                instances.replace(tr, instances.get(tr) + 1);
+                instances.put(tr, instances.get(tr) + 1);
                 return tr;
             }
         }
@@ -259,7 +259,7 @@ public class FrameTransformer
         int num = instances.get(instance);
         if (num > 1)
         {
-            instances.replace(instance, num - 1);
+            instances.put(instance, num - 1);
         }
         else
         {

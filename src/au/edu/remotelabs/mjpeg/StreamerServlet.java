@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
@@ -173,7 +174,11 @@ public class StreamerServlet extends HttpServlet
     {
         Map<String, String[]> p = request.getParameterMap();
         Map<String, String> cp = new HashMap<>(p.size());
-        p.forEach((String k, String v[]) -> cp.put(k, v[0]));
+        for (Entry<String, String[]> e : p.entrySet())
+        {
+            cp.put(e.getKey(), e.getValue()[0]);
+        }
+
         return cp;
     }
 }

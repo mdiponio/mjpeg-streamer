@@ -69,8 +69,9 @@ public class ResizeOp implements TransformOp
         if (this.transform == null)
         {
             this.transform = new AffineTransform();
-            
             double wid = this.width, hei = this.height;
+            
+            
             if (this.preserveAspect)
             {
                 /* To preserve aspect ratio, the smaller value between width and height scale will be
@@ -86,12 +87,24 @@ public class ResizeOp implements TransformOp
             {
                 this.transform.setToScale(wid / image.getWidth(), hei / image.getHeight());
             }
+            
+            
         }
         
-        BufferedImage sizedImage = new BufferedImage(this.width, this.height, image.getType());
+
+        return this.resizeTo(image, 320, 240);
+    }
+    
+    private BufferedImage resizeTo(BufferedImage image, int width, int height)
+    {
+        BufferedImage sizedImage = new BufferedImage(width, height, image.getType());
         Graphics2D canvas = sizedImage.createGraphics();
         canvas.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        canvas.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        canvas.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        
         canvas.drawImage(image, this.transform, null);
+        
         canvas.dispose();
         
         return sizedImage;
