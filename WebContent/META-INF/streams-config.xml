@@ -38,31 +38,8 @@
             
         </stream> -->
         <stream>
-            <name>shaker1</name>
-            <url>http://138.25.49.22/camera1.mjpg</url>
-            <format> 
-                <boundary>abc123</boundary>
-            </format>
-            <protect>true</protect>
-            <access>shake</access>
-            <resettable>true</resettable>
-        </stream>
-        <stream>
-            <name>coupledtanks1</name>
-            <url>http://138.25.49.21/camera1.mjpg</url>
-        </stream>
-        <stream>
-            <name>dummy</name>
-            <url>http://138.25.49.17</url>
-        </stream>
-        <stream>
-            <name>vivo</name>
-            <url>http://192.168.1.3/video.mjpeg</url>
-            <auth>
-                <type>BASIC</type>
-                <username>vivo</username>
-                <password>vivopasswd</password>
-            </auth>
+            <name>robot</name>
+            <url>http://138.25.49.38/streams/robot1.mjpg</url>
         </stream>
     </streams>
 </streamer>

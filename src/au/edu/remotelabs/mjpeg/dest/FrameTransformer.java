@@ -37,6 +37,7 @@ public class FrameTransformer
         TRANSFORMS.put("quality",   QualityOp.class);
         TRANSFORMS.put("size",      ResizeOp.class);
         TRANSFORMS.put("timestamp", TimestampOp.class);
+        TRANSFORMS.put("rotate",    RotateOp.class);
     }
     
     /** Name of source stream that is being transformed. */

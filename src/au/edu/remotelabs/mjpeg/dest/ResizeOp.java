@@ -65,7 +65,6 @@ public class ResizeOp implements TransformOp
     @Override
     public BufferedImage apply(BufferedImage image) throws IOException
     {
-        
         if (this.transform == null)
         {
             this.transform = new AffineTransform();

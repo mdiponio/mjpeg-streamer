@@ -9,6 +9,8 @@ package au.edu.remotelabs.mjpeg.dash;
 
 import java.util.Base64;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -52,6 +54,12 @@ public class DashboardAuth
         auth = auth.substring(pos + 1);
         
         StreamerConfig config = StreamerHolder.get().getConfig();
+        if (config == null)
+        {
+            Logger.getLogger(DashboardAuth.class.getName()).log(Level.SEVERE , "Cannot authenticate users, configuration is not loaded.");
+            return false;
+        }
+        
         String pass = Base64.getMimeEncoder().encodeToString(
                 (config.getAdminUsername() + ':' + config.getAdminPassword()).getBytes());
         
