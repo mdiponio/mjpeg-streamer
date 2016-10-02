@@ -45,7 +45,6 @@ public class RotateOp implements TransformOp
             param = param.substring(0, p);
         }
         
-                
         p = param.indexOf("rad");
         if (p < 0)
         {
@@ -81,7 +80,6 @@ public class RotateOp implements TransformOp
             this.transform.translate(this.width / 2, this.height / 2);
             this.transform.rotate(this.rotation);
             this.transform.translate(-image.getWidth() / 2, -image.getHeight() / 2);
-            
         }
             
         BufferedImage rotated = new BufferedImage(this.width, this.height, image.getType());

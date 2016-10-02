@@ -59,7 +59,7 @@ public class BarrelCorrectionOp implements TransformOp
                 int nx = x - halfWid;
                 int ny = y - halfHei;
                 
-                double r = Math.sqrt(nx * nx + ny + ny) / rad;
+                double r = Math.sqrt(nx * nx + ny * ny) / rad;
                 
                 double th;
                 if (r == 0) th = 1;
@@ -71,7 +71,9 @@ public class BarrelCorrectionOp implements TransformOp
                 int sx = (int)(halfWid + th * nx * this.zoom);
                 int sy = (int)(halfHei + th * ny * this.zoom);
                 
+                if (sx < 0) sx = 0;
                 if (sx >= image.getWidth()) sx = image.getWidth() - 1;
+                if (sy < 0) sy = 0;
                 if (sy >= image.getHeight()) sy = image.getHeight() - 1;
                 fixed.setRGB(x, y, image.getRGB(sx, sy));
             }
