@@ -45,16 +45,21 @@ public class BarrelCorrectionOp implements TransformOp
     public BufferedImage apply(BufferedImage image) throws IOException
     {
         /* Algorithm from:
-         * http://www.tannerhelland.com/4743/simple-algorithm-correcting-lens-distortion/. */      
-        int halfWid = image.getWidth() / 2; 
-        int halfHei = image.getHeight() / 2;
+         * http://www.tannerhelland.com/4743/simple-algorithm-correcting-lens-distortion/. */   
+        int wid = image.getWidth();
+        int hei = image.getHeight();
         
-        double rad = Math.sqrt(image.getWidth() * image.getWidth() + image.getHeight() * image.getHeight()) / this.strength;
+        int halfWid = wid / 2; 
+        int halfHei = hei / 2;
         
-        BufferedImage fixed = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-        for (int y = 0; y < image.getHeight(); y++)
+        double rad = Math.sqrt(wid * wid + hei * hei) / this.strength;
+        
+        int orig[] = image.getRGB(0, 0, wid, hei, null, 0, wid);
+        int corrected[] = orig.clone();
+        
+        for (int y = 0; y < hei; y++)
         {
-            for (int x = 0; x < image.getWidth(); x++)
+            for (int x = 0; x < wid; x++)
             {
                 int nx = x - halfWid;
                 int ny = y - halfHei;
@@ -62,7 +67,10 @@ public class BarrelCorrectionOp implements TransformOp
                 double r = Math.sqrt(nx * nx + ny * ny) / rad;
                 
                 double th;
-                if (r == 0) th = 1;
+                if (r == 0) 
+                {
+                    th = 1;
+                }
                 else
                 {
                     th = Math.atan(r) / r;
@@ -71,14 +79,18 @@ public class BarrelCorrectionOp implements TransformOp
                 int sx = (int)(halfWid + th * nx * this.zoom);
                 int sy = (int)(halfHei + th * ny * this.zoom);
                 
+                /* Range check if correct position is outside frame, if so clamp to 
+                 * boundary pixel. e*/
                 if (sx < 0) sx = 0;
-                if (sx >= image.getWidth()) sx = image.getWidth() - 1;
+                if (sx >= wid) sx = wid - 1;
                 if (sy < 0) sy = 0;
-                if (sy >= image.getHeight()) sy = image.getHeight() - 1;
-                fixed.setRGB(x, y, image.getRGB(sx, sy));
+                if (sy >= hei) sy = hei - 1;
+                corrected[y * wid + x] = orig[sy * wid + sx];
             }
         }
-
-        return fixed;
+        
+        BufferedImage newImage = new BufferedImage(wid, hei, image.getType());
+        newImage.setRGB(0, 0, wid, hei, corrected, 0, wid);
+        return newImage;
     }
 }
