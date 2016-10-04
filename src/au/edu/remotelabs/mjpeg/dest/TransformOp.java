@@ -29,5 +29,5 @@ public interface TransformOp
      * @param image image to transform
      * @return transform image which may not be the same as param image  
      */
-    BufferedImage apply(BufferedImage images) throws IOException;
+    BufferedImage apply(BufferedImage image) throws IOException;
 }

@@ -34,8 +34,9 @@ public class FrameTransformer
 {    
     private static final Map<String, Class<? extends TransformOp>> TRANSFORMS = new HashMap<>(4);
     static {
-        TRANSFORMS.put("debarrel",    BarrelCorrectionOp.class);
+        TRANSFORMS.put("debarrel",  BarrelCorrectionOp.class);
         TRANSFORMS.put("quality",   QualityOp.class);
+        TRANSFORMS.put("crop",      CropOp.class);
         TRANSFORMS.put("size",      ResizeOp.class);
         TRANSFORMS.put("timestamp", TimestampOp.class);
         TRANSFORMS.put("rotate",    RotateOp.class);

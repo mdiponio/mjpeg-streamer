@@ -72,8 +72,8 @@ public class RotateOp implements TransformOp
             }
             else
             {
-                this.width = (int)Math.abs(image.getWidth() * Math.cos(this.rotation) + image.getHeight() * Math.sin(this.rotation));
-                this.height = (int)Math.abs(image.getWidth() * Math.sin(this.rotation) + image.getHeight() * Math.cos(this.rotation));
+                this.width = (int)Math.round(Math.abs(image.getWidth() * Math.cos(this.rotation) + image.getHeight() * Math.sin(this.rotation)));
+                this.height = (int)Math.round(Math.abs(image.getWidth() * Math.sin(this.rotation) + image.getHeight() * Math.cos(this.rotation)));
             }
 
             this.transform = new AffineTransform();

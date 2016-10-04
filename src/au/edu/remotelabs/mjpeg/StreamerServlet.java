@@ -9,7 +9,7 @@ package au.edu.remotelabs.mjpeg;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -172,7 +172,7 @@ public class StreamerServlet extends HttpServlet
     private Map<String, String> getParams(HttpServletRequest request)
     {
         Map<String, String[]> p = request.getParameterMap();
-        Map<String, String> cp = new HashMap<>(p.size());
+        Map<String, String> cp = new LinkedHashMap<>(p.size());
         p.forEach((String k, String v[]) -> cp.put(k, v[0]));
         return cp;
     }
