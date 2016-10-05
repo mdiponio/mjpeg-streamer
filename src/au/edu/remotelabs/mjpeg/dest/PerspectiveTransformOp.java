@@ -18,6 +18,11 @@ public class PerspectiveTransformOp implements TransformOp
     /** Perspective matrix. */
     private final double m[][] = new double[3][3];
     
+    /** Width of image. */
+    private int width;
+    
+    /** Height of image. */
+    private int height;
 
     @Override
     public boolean configure(String param)
@@ -43,11 +48,14 @@ public class PerspectiveTransformOp implements TransformOp
     @Override
     public BufferedImage apply(BufferedImage image) throws IOException
     {
-        int width = image.getWidth(), height = image.getHeight();
+        this.width = image.getWidth(); 
+        this.height = image.getHeight();
+        
         int rgb[] = image.getRGB(0, 0, width, height, null, 0, width);
         
         int trans[] = new int[rgb.length];
         
+        /* Perspective transform. */
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -65,13 +73,58 @@ public class PerspectiveTransformOp implements TransformOp
                 if (yh >= height) yh = height - 1;
                 
                 trans[yh * width + xh] = rgb[y * width + x];
-          
-                
             }
         }
         
+        /* Bilinear interpolation of fill missing lines. */
+        int adjacent[] = new int[8];
+
+        for (int y = 1; y < height - 1; y++)
+        {
+            for (int x = 1; x < width - 1; x++)
+            {
+                if (trans[y * width + x] != 0) continue;
+
+                adjacent[0] = this.pick(trans, x, y, -1, -1);
+                adjacent[1] = this.pick(trans, x, y, -1,  0);
+                adjacent[2] = this.pick(trans, x, y, -1, -1);
+                adjacent[3] = this.pick(trans, x, y,  0, -1);
+                adjacent[4] = this.pick(trans, x, y,  0,  1);
+                adjacent[5] = this.pick(trans, x, y,  1, -1);
+                adjacent[6] = this.pick(trans, x, y,  1,  0);
+                adjacent[7] = this.pick(trans, x, y,  1,  1);
+
+
+                int px = 0;
+                for (int m = 0; m < 3; m++)
+                {
+                    int ch = 0;
+                    for (int i = 0; i < adjacent.length; i++)
+                    {
+                        ch += (adjacent[i] >> (8 * m)) & 0xFF;
+                    }
+
+                    px |= (ch / adjacent.length) << (8 * m);
+                }
+
+                trans[y * width + x] = px;
+            }
+        }
+       
         BufferedImage transformed = new BufferedImage(width, height, image.getType());
         transformed.setRGB(0, 0, width, height, trans, 0, width);
         return transformed;
+    }
+    
+    int pick(int[] rgb, int x, int y, int xd, int yd)
+    {   
+        int v = 0;
+        do
+        {
+            x += xd;
+            y += yd;
+        }
+        while (x > 0 && x < this.width && y > 0 && y < this.height && (v = rgb[y * this.width + x]) == 0);
+        return v;
     }
 }
