@@ -36,7 +36,7 @@ Where
  * `<stream>` - Configured name of stream
  * `<transform>` - List of transformations and transform parameters in order of application
 
-# Supported Transformations
+## Supported Transformations
 The list of transformations supported are:
 
  
