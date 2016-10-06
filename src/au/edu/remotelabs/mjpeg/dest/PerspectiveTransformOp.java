@@ -115,8 +115,8 @@ public class PerspectiveTransformOp implements TransformOp
         transformed.setRGB(0, 0, width, height, trans, 0, width);
         return transformed;
     }
-    
-    int pick(int[] rgb, int x, int y, int xd, int yd)
+
+    private int pick(int[] rgb, int x, int y, int xd, int yd)
     {   
         int v = 0;
         do
