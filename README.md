@@ -43,12 +43,12 @@ The list of transformations supported are:
  
 | Transformation | Parameters | Description |
 | -------------- | ---------- | ----------- |
-| crop | x,y,width,height | Crop a region of stream using offset coordinate and size. |
-| debarrel | strength,zoom | Apply barrel correction to image, can be used to correct image fish-eye caused by lens distortion. |
-| quality | percent | Reduce output image size, increase JPEG compression. 1 highest compression, lowest quality, 100 lowest compression. |
-| size | widthxheight[,keepRatio] | Scale output image to new width and height, optionally preserving aspect ratio.
+| crop | `<x>,<y>,<width>,<height>` | Crop a region of stream using offset coordinate and size. |
+| debarrel | `<strength>,<zoom>` | Apply barrel correction to image, can be used to correct image fish-eye caused by lens distortion. |
+| quality | `<percent>` | Reduce output image size, increase JPEG compression. 1 highest compression, lowest quality, 100 lowest compression. |
+| size | `<width>x<height>[,keepRatio]` | Scale output image to new width and height, optionally preserving aspect ratio.
 | timestamp | N/A | Add a timestamp to the image. |
-| rotate | angle[rad][,clip] | Rotate the image about the image center. Rotation angle is in degrees or radians if 'rad' specified. If the rotate the image puts parts outside the bounds of the image, the image will be resized, or optionally clipped. |
-| perspective | m01,m02,...,m22 | Applies a perspective transformation with the specified perspective matrix. |
+| rotate | `<angle>[rad][,clip]` | Rotate the image about the image center. Rotation angle is in degrees or radians if 'rad' specified. If the rotate the image puts parts outside the bounds of the image, the image will be resized, or optionally clipped. |
+| perspective | `<m01>,<m02>,...,<m22>` | Applies a perspective transformation with the specified perspective matrix. |
 
 Multiple transforms can be used and each will be applied in the same sequence as they exist in the request URL. For example `<URL>?size=640x480&rotate=180&timestamp` will first resize source to width 640px and height 480px, then rotate 180 degrees (flip on Y axis) and finally add a timestamp to the top left of image.
