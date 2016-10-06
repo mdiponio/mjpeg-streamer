@@ -6,9 +6,9 @@ M-JPEG streaming application which runs on Tomcat 7+ and provides the following 
   * Reads a M-JPEG video feed, a format commonly served from a network security cameras.
   * Applies transformations to video feeds such as scaling, rotating, cropping, perspective transformations. These transformations are on-demand, specified as part of feed request URL encoded parameters.
   * Outputs either:
-    ** Single JPEG frame
-    ** M-JPEG HTTP feed
-    ** JPEG frames to a websocket
+   - Single JPEG frame
+   - M-JPEG HTTP feed
+   - JPEG frames to a websocket
   * Output feeds may be password protected, started or stopped through a REST API.
 
 ## Build
@@ -37,7 +37,6 @@ Where
  * `<transform>` - List of transformations and transform parameters in order of application
 
 ## Supported Transformations
-The list of transformations supported are:
 
  
 | Transformation | Parameters | Description |
