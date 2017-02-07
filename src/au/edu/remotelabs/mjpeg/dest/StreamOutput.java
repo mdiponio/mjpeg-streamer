@@ -40,6 +40,9 @@ public abstract class StreamOutput
     /** Transformer to modify acquired frame as requested. */ 
     private final FrameTransformer transformer;
     
+    /** Whether to stop the output. */
+    private boolean stop;
+    
     /** Logger. */
     protected final Logger logger;
     
@@ -90,7 +93,7 @@ public abstract class StreamOutput
                 
                 cont = this.writeFrame(frame);
             }
-            while (cont);
+            while (cont && !this.stop);
         }
         catch (IOException ex)
         {
@@ -168,5 +171,13 @@ public abstract class StreamOutput
     public void cleanup()
     {
         FrameTransformer.unget(this.transformer);
+    }
+    
+    /**
+     * Stops this output.
+     */
+    protected void stop()
+    {
+        this.stop = true;
     }
 }
