@@ -62,6 +62,7 @@ public class Frame
     public void writeTo(OutputStream stream) throws IOException
     {
         stream.write(this.buf);
+        stream.flush();
     }
     
     /**

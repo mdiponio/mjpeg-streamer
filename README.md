@@ -26,6 +26,7 @@ See example at https://github.com/mdiponio/mjpeg-streamer/blob/master/WebContent
 
 ## Request URL format
  * M-JPEG -  `http://<server>/<app>/streams/<stream>.mjpg?<transform list>`
+ * Buffered M-JPEG -  `http://<server>/<app>/streams/<stream>.bjpg?<transform list>` 
  * JPEG - `http://<server>/<app>/streams/<stream>.jpeg?<transform list>`
  * Last acquired frame - `http://<server>/<app>/stream>.last`
  * Websocket - `http://<server/<app/websocket.jsp?stream=<stream>&<transform list>`

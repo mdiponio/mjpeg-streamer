@@ -97,7 +97,7 @@ public class BufferedMJpegOutput extends StreamOutput
     @Override
     public String getSuffix()
     {
-        return "sjpg";
+        return "bjpg";
     }
 
 }
