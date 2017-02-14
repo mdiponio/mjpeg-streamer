@@ -51,3 +51,10 @@ Where
 | perspective | `<m00>,<m01>,<m02>,<m10>,<m11>,<m12>,<m20>,<m21>,<m22>` | Applies a perspective transformation with the specified perspective matrix. |
 
 Multiple transforms can be used and each will be applied in the same sequence as they exist in the request URL. For example `<URL>?size=640x480&rotate=180&timestamp` will first resize source to width 640px and height 480px, then rotate 180 degrees (flip on Y axis) and finally add a timestamp to the top left of image.
+
+## Format Specific Parameters
+| Parameter | Arguments | Applies To | Description |
+| --------- | --------- | ---------- | ----------- |
+| frame_rate (or fr) | `<rate>` | M-Jpeg / Buffered M-Jpeg | Allows frame rate of the returned stream to be returned from the source stream frame rate. For example, if the source frame rate is 25 frames a second and the rate argument is 1, 1 frame a second will be returned and 24 discarded. |
+| sequence (or seq) | N/A | M-Jpeg / Buffered M-Jpeg | Adds a sequence number header 'frame-sequence' before each frame is sent, specifying the source stream frame number since the start of the stream. If frames are dropped, the sequence number will not be continuous. |
+| wait | `<number>` | Buffered M-Jpeg | Specifies the number of frames that are buffered, if not read fast enough, before frames are discarded. | 

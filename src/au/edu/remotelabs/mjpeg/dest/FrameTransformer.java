@@ -190,7 +190,7 @@ public class FrameTransformer
         writer.setOutput(new MemoryCacheImageOutputStream(out));
         writer.write(null, new IIOImage(image, null, null), param);
 
-        return new Frame("image/jpeg", out.toByteArray());
+        return new Frame("image/jpeg", out.toByteArray(), orig.getSequence());
     }
     
     /**

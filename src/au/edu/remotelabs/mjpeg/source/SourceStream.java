@@ -179,6 +179,7 @@ public class SourceStream implements Runnable
         this.stop = false;
         this.error = false;
         this.errorReason = null;
+        int sequence = 0;
 
         try
         {
@@ -291,7 +292,7 @@ public class SourceStream implements Runnable
                 
                 synchronized (this)
                 {                
-                    this.frame = new Frame(mime, image);
+                    this.frame = new Frame(mime, image, sequence++);
                     this.notifyAll();
                 }
             }

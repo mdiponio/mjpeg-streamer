@@ -30,17 +30,22 @@ public class Frame
     /** MIME type of buf. */
     private final String mime;
     
+    /** Sequence number of frame. */
+    private final int sequence;
+    
     /**
      * Creates the frame with the specified content size.
      * 
      * @param mime buf mime type
      * @param data buf data bytes 
+     * @param seq sequence number of frame
      */
-    public Frame(String mime, byte data[])
+    public Frame(String mime, byte data[], int seq)
     {
         this.mime = mime.trim();
         this.buf = data;
         this.timestamp = System.currentTimeMillis();
+        this.sequence = seq;
     }
 
     /**
@@ -103,5 +108,15 @@ public class Frame
     public long getTimestamp()
     {
         return this.timestamp;
+    }
+    
+    /**
+     * Sequence number of frame which is relative from the first frame read.
+     * 
+     * @return sequence number
+     */
+    public int getSequence()
+    {
+        return this.sequence;
     }
 }

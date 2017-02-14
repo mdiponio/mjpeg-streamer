@@ -23,7 +23,7 @@ import au.edu.remotelabs.mjpeg.source.SourceStream;
  * Takes the parameter 'wait', specifies the maximum number of frames to buffer before 
  * dropping frames.
  */
-public class BufferedMJpegOutput extends StreamOutput
+public class BufferedMJpegOutput extends MJpegOutput
 {
     /** Queue for frames that need to sent. */
     private final ArrayBlockingQueue<Frame> sendQueue;
@@ -49,15 +49,9 @@ public class BufferedMJpegOutput extends StreamOutput
         this.response.setContentType("multipart/x-mixed-replace;boundary=" + MJpegOutput.BOUNDARY);
     }
 
-    @Override
-    protected boolean willWrite(Frame frame)
-    {
-        /* Never (intentionally) frame drop. */
-        return true;
-    }
 
     @Override
-    protected boolean writeFrame(Frame frame) throws ServletException, IOException
+    public boolean writeFrame(Frame frame) throws IOException
     {
         if (!this.sendQueue.offer(frame))
         {
@@ -65,6 +59,7 @@ public class BufferedMJpegOutput extends StreamOutput
             this.logger.info("Buffered M-Jpeg queue is full dropping oldest frame.");
             this.sendQueue.poll();      
             this.sendQueue.offer(frame);
+
         }
 
         return true;
@@ -78,13 +73,7 @@ public class BufferedMJpegOutput extends StreamOutput
             {
                 Frame frame = this.sendQueue.take();
                 
-                this.writeln();
-                this.writeln("--", MJpegOutput.BOUNDARY);
-                this.writeln("content-type: ", frame.getContentType());
-                this.writeln("content-length: ", frame.getContentLength());
-                this.writeln();
-                
-                frame.writeTo(this.output);
+                this.sendFrame(frame);
             }
         }
         catch (InterruptedException | IOException e)
