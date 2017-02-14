@@ -55,6 +55,6 @@ Multiple transforms can be used and each will be applied in the same sequence as
 ## Format Specific Parameters
 | Parameter | Arguments | Applies To | Description |
 | --------- | --------- | ---------- | ----------- |
-| frame_rate (or fr) | `<rate>` | M-Jpeg / Buffered M-Jpeg | Allows frame rate of the returned stream to be returned from the source stream frame rate. For example, if the source frame rate is 25 frames a second and the rate argument is 1, 1 frame a second will be returned and 24 discarded. |
-| sequence (or seq) | N/A | M-Jpeg / Buffered M-Jpeg | Adds a sequence number header 'frame-sequence' before each frame is sent, specifying the source stream frame number since the start of the stream. If frames are dropped, the sequence number will not be continuous. |
+| frame_rate (or fr) | `<rate>` | M-Jpeg / Buffered M-Jpeg | Allows frame rate of the returned stream to be set. This rate is specified in terms of frames per second and should be smaller than source stream frame rate to have any effect. For example, if the source frame rate is 25 frames a second and the rate argument is 1, 1 frame a second will be returned and 24 discarded. |
+| sequence (or seq) | N/A | M-Jpeg / Buffered M-Jpeg | Adds a sequence number header 'frame-sequence' before each frame is sent, specifying the source stream frame number since the start of the stream. If frames are dropped, the sequence number will not be continuous. Subtracted the current frame sequence from the previously received frame sequence will give the number of frames dropped between the current and previously received frame. |
 | wait | `<number>` | Buffered M-Jpeg | Specifies the number of frames that are buffered, if not read fast enough, before frames are discarded. | 
