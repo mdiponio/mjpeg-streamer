@@ -10,6 +10,8 @@ package au.edu.remotelabs.mjpeg.dest;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /**
  * Operation that modifies image.
  */
@@ -27,7 +29,8 @@ public interface TransformOp
      * Apply transformation to image.
      * 
      * @param image image to transform
+     * @param frame original image frame
      * @return transform image which may not be the same as param image  
      */
-    BufferedImage apply(BufferedImage image) throws IOException;
+    BufferedImage apply(BufferedImage image, Frame frame) throws IOException;
 }

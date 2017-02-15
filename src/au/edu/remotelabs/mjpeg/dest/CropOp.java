@@ -10,6 +10,8 @@ package au.edu.remotelabs.mjpeg.dest;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /**
  * Transformation operation which returns a region of the source frame.
  */
@@ -44,7 +46,7 @@ public class CropOp implements TransformOp
     }
 
     @Override
-    public BufferedImage apply(BufferedImage image) throws IOException
+    public BufferedImage apply(BufferedImage image, Frame frame) throws IOException
     {
         if (this.offsetX + this.width > image.getWidth())
         {

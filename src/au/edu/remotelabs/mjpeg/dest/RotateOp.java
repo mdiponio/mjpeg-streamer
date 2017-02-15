@@ -13,6 +13,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /** 
  * Rotation operation that rotates a frame a specified number of degrees or
  * radians.
@@ -60,7 +62,7 @@ public class RotateOp implements TransformOp
     }
 
     @Override
-    public BufferedImage apply(BufferedImage image) throws IOException
+    public BufferedImage apply(BufferedImage image, Frame frame) throws IOException
     {
         if (this.transform == null)
         {

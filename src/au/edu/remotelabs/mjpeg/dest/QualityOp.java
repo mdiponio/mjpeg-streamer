@@ -10,6 +10,8 @@ package au.edu.remotelabs.mjpeg.dest;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /**
  * This class represents a quality transform but does not actually perform 
  * transformation work as quality manipulation occurs during encode phase
@@ -48,7 +50,7 @@ public class QualityOp implements TransformOp
     }
 
     @Override
-    public BufferedImage apply(BufferedImage image) throws IOException
+    public BufferedImage apply(BufferedImage image, Frame frame) throws IOException
     {
         /* This actually doesn't perform any tasks, as it quality occurs during
          * output encode. */

@@ -13,6 +13,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /**
  * Resize operation that resizes a frame to new dimensions optionally 
  * preserving aspect ratio of source frame. 
@@ -63,7 +65,7 @@ public class ResizeOp implements TransformOp
     }
 
     @Override
-    public BufferedImage apply(BufferedImage image) throws IOException
+    public BufferedImage apply(BufferedImage image, Frame frame) throws IOException
     {
         if (this.transform == null)
         {

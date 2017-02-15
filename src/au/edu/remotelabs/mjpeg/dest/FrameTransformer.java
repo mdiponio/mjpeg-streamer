@@ -41,6 +41,7 @@ public class FrameTransformer
         TRANSFORMS.put("timestamp",   TimestampOp.class);
         TRANSFORMS.put("rotate",      RotateOp.class);
         TRANSFORMS.put("perspective", PerspectiveTransformOp.class);
+        TRANSFORMS.put("frameSeq",    SequenceOp.class);
     }
     
     /** Name of source stream that is being transformed. */
@@ -150,7 +151,7 @@ public class FrameTransformer
         
         for (TransformOp op : this.ops)
         {
-            image = op.apply(image);
+            image = op.apply(image, frame);
         }
         
         this.timestamp = frame.getTimestamp();

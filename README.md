@@ -49,6 +49,7 @@ Where
 | timestamp | N/A | Add a timestamp to the image. |
 | rotate | `<angle>[rad][,clip]` | Rotate the image about the image center. Rotation angle is in degrees or radians if 'rad' specified. If the rotation of the image puts regions outside the bounds of the image, the image will be resized, or optionally clipped. |
 | perspective | `<m00>,<m01>,<m02>,<m10>,<m11>,<m12>,<m20>,<m21>,<m22>` | Applies a perspective transformation with the specified perspective matrix. |
+| frameSeq | `[RGBA]` | Adds the frame sequence number to the top left of the image. The color of text can be set with optional RGBA argument which specifies color in  either CSS hexformat or rgba format. |
 
 Multiple transforms can be used and each will be applied in the same sequence as they exist in the request URL. For example `<URL>?size=640x480&rotate=180&timestamp` will first resize source to width 640px and height 480px, then rotate 180 degrees (flip on Y axis) and finally add a timestamp to the top left of image.
 

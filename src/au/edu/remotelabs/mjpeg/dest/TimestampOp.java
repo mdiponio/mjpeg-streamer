@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /**
  * Adds a time stamp to the top left of a frame.
  */
@@ -41,7 +43,7 @@ public class TimestampOp implements TransformOp
     }
 
     @Override
-    public BufferedImage apply(BufferedImage image) throws IOException
+    public BufferedImage apply(BufferedImage image, Frame frame) throws IOException
     {
         Graphics2D canvas = image.createGraphics();
         canvas.setColor(Color.BLACK);

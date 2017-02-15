@@ -10,6 +10,8 @@ package au.edu.remotelabs.mjpeg.dest;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /**
  * Transform that applies a perspective transformation to image.
  */
@@ -46,7 +48,7 @@ public class PerspectiveTransformOp implements TransformOp
     }
 
     @Override
-    public BufferedImage apply(BufferedImage image) throws IOException
+    public BufferedImage apply(BufferedImage image, Frame frame) throws IOException
     {
         this.width = image.getWidth(); 
         this.height = image.getHeight();

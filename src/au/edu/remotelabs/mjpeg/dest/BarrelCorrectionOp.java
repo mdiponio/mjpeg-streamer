@@ -10,6 +10,8 @@ package au.edu.remotelabs.mjpeg.dest;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import au.edu.remotelabs.mjpeg.source.Frame;
+
 /**
  * Barrel distortion correction operation. 
  */
@@ -42,7 +44,7 @@ public class BarrelCorrectionOp implements TransformOp
     }
 
     @Override
-    public BufferedImage apply(BufferedImage image) throws IOException
+    public BufferedImage apply(BufferedImage image, Frame frame) throws IOException
     {
         /* Algorithm from:
          * http://www.tannerhelland.com/4743/simple-algorithm-correcting-lens-distortion/. */   
