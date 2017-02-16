@@ -21,7 +21,7 @@ import au.edu.remotelabs.mjpeg.source.Frame;
 public class QualityOp implements TransformOp
 {
     /** The quality of output encode between 0 and 1. */
-    private float quality;
+    private int quality;
 
     @Override
     public boolean configure(String param)
@@ -30,7 +30,7 @@ public class QualityOp implements TransformOp
          * 100. */
         try
         {
-            this.quality = Integer.parseInt(param) / 100.f;
+            this.quality = Integer.parseInt(param);
             return true;
         }
         catch (Exception ex)
@@ -44,7 +44,7 @@ public class QualityOp implements TransformOp
      * 
      * @return encode quality
      */
-    public float getEncodeQuality()
+    public int getEncodeQuality()
     {
         return this.quality;
     }

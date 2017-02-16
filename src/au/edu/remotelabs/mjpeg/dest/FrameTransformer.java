@@ -8,7 +8,6 @@
 package au.edu.remotelabs.mjpeg.dest;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,12 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.MemoryCacheImageOutputStream;
-
+import au.edu.remotelabs.mjpeg.format.EncoderDecoder;
 import au.edu.remotelabs.mjpeg.source.Frame;
 import au.edu.remotelabs.mjpeg.source.SourceStream;
 
@@ -54,13 +48,15 @@ public class FrameTransformer
     private final List<TransformOp> ops;
     
     /** Encode quality of transformed frame. */
-    private float encodeQuality;
+    private int encodeQuality;
     
     /** Time stamp of cached transformed frame. */
     private long timestamp;
     
     /** Cache of transformed frame. */
     private Frame cachedFrame;
+    
+    private final EncoderDecoder ed;
     
     /** Frame transformer instances. */
     private static Map<FrameTransformer, Integer> instances = new HashMap<>();
@@ -70,7 +66,7 @@ public class FrameTransformer
         this.name = name;
         
         /* Default encode quality is source quality. */
-        this.encodeQuality = 1.f;
+        this.encodeQuality = 100;
         
         List<TransformOp> opsList = new ArrayList<>();
         Map<String, String> paramMap = new HashMap<>();
@@ -116,6 +112,7 @@ public class FrameTransformer
         
         this.ops = Collections.unmodifiableList(opsList);
         this.params = Collections.unmodifiableMap(paramMap);
+        this.ed = EncoderDecoder.get();
     }
     
     /**
@@ -135,7 +132,7 @@ public class FrameTransformer
      * @return transformed frame
      * @throws IOException error transforming
      */
-    public synchronized Frame transform(Frame frame) throws IOException
+    public synchronized Frame transform(Frame frame) throws Exception
     {
         /* If nothing to do no need to decode source. */
         if (!this.isTransforming()) return frame;
@@ -147,7 +144,7 @@ public class FrameTransformer
             return this.cachedFrame;
         }
         
-        BufferedImage image = frame.decodeImage();
+        BufferedImage image = frame.decodeImage(this.ed);
         
         for (TransformOp op : this.ops)
         {
@@ -175,23 +172,9 @@ public class FrameTransformer
      * @return frame encoded frame
      * @throws IOException error in encoding
      */
-    private Frame encode(Frame orig, BufferedImage image) throws IOException
+    private Frame encode(Frame orig, BufferedImage image) throws Exception
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
-        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
-        ImageWriteParam param = writer.getDefaultWriteParam();
-        
-        if (this.encodeQuality < 1)
-        {
-            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            param.setCompressionQuality(this.encodeQuality);
-        }
-        
-        writer.setOutput(new MemoryCacheImageOutputStream(out));
-        writer.write(null, new IIOImage(image, null, null), param);
-
-        return new Frame("image/jpeg", out.toByteArray(), orig.getSequence());
+        return new Frame("image/jpeg", this.ed.encode(image, this.encodeQuality), orig.getSequence());
     }
     
     /**
@@ -255,6 +238,14 @@ public class FrameTransformer
     }
     
     /**
+     * Discards transformer. 
+     */
+    private void discard()
+    {
+        this.ed.dispose();
+    }
+    
+    /**
      * Release a transformer. 
      * 
      * @param FrameTransformer instance to remove
@@ -264,6 +255,7 @@ public class FrameTransformer
         int num = instances.get(instance);
         if (num > 1)
         {
+            instance.discard();
             instances.replace(instance, num - 1);
         }
         else

@@ -119,7 +119,7 @@ public class StreamerEndpoint
             
             if ("p".equals(message)) out.pullFrame();
         }
-        catch (IOException e)
+        catch (Exception e)
         {
              this.logger.warning("Error responding to message for session " + session.getId() + ", error" +
                     e.getClass().getName() + ": " + e.getMessage());

@@ -106,6 +106,10 @@ public abstract class StreamOutput
             this.logger.warning("Error handling connection for " + this.getSuffix() + ", error " + 
                     ex.getClass().getName() + ": " + ex.getMessage());
         }
+        catch (Exception ex)
+        {
+            this.logger.warning("Error processing stream, " + ex.getClass() + ": " + ex.getMessage());
+        }
         finally
         {
             this.source.unregister(this);

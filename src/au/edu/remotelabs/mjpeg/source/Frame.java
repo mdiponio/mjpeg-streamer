@@ -8,13 +8,12 @@
 package au.edu.remotelabs.mjpeg.source;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Base64;
 
-import javax.imageio.ImageIO;
+import au.edu.remotelabs.mjpeg.format.EncoderDecoder;
 
 /** 
  * A single frame from the source stream.
@@ -47,15 +46,15 @@ public class Frame
         this.timestamp = System.currentTimeMillis();
         this.sequence = seq;
     }
-
+    
     /**
-     * Returns a buffered image decoded from this frames bytes.
+     * Returns a buffered image decoded from this frames bytes using AWT.
      * 
      * @return image decoded image
      */
-    public BufferedImage decodeImage() throws IOException
+    public BufferedImage decodeImage(EncoderDecoder ed) throws Exception
     {
-        return ImageIO.read(new ByteArrayInputStream(this.buf));
+        return ed.decode(this.buf);
     }
     
     /**

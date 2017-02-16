@@ -83,7 +83,6 @@ public class MJpegOutput extends StreamOutput
      */
     protected void sendFrame(Frame frame) throws IOException
     {
-        this.writeln();
         this.writeln("--", BOUNDARY);
         this.writeln("content-type: ", frame.getContentType());
         this.writeln("content-length: ", frame.getContentLength());

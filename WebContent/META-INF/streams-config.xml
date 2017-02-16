@@ -38,8 +38,8 @@
             
         </stream> -->
         <stream>
-            <name>robot</name>
-            <url>http://138.25.49.38/streams/robot1.mjpg</url>
+            <name>entrance</name>
+            <url>http://hummingbird.feit.uts.edu.au:8080/mjpeg/streams/PC0214-BroadwayEastEntrance.bjpg?pw=2ZWTpV3HJZAfTTkv</url>
         </stream>
     </streams>
 </streamer>

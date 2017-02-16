@@ -72,7 +72,7 @@ public class WebSocketOutput
      * 
      * @throws IOException error sending frame
      */
-    public void pullFrame() throws IOException
+    public void pullFrame() throws Exception
     {
         Frame frame = this.source.nextFrame();
         if (frame == null) return;
