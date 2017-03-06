@@ -36,10 +36,10 @@ public class TurboJpegEncoderDecoder implements EncoderDecoder
     }
 
     @Override
-    public BufferedImage decode(byte[] buf) throws Exception
+    public BufferedImage decode(byte[] buf, int size) throws Exception
     {
        if (this.decompressor == null) this.decompressor = new TJDecompressor();
-       this.decompressor.setSourceImage(buf, buf.length);
+       this.decompressor.setSourceImage(buf, size);
        return this.decompressor.decompress(0, 0, BufferedImage.TYPE_INT_RGB, TJ.FLAG_FASTDCT | TJ.FLAG_FASTUPSAMPLE);
     }
 

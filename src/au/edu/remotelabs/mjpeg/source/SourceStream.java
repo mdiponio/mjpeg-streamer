@@ -292,7 +292,7 @@ public class SourceStream implements Runnable
                 
                 synchronized (this)
                 {                
-                    this.frame = new Frame(mime, image, sequence++);
+                    this.frame = new Frame(mime, image, image.length, sequence++);
                     this.notifyAll();
                 }
             }

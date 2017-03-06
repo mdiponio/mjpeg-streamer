@@ -21,7 +21,10 @@ import au.edu.remotelabs.mjpeg.format.EncoderDecoder;
 public class Frame
 {
     /** Image bytes. */
-    protected byte buf[];
+    protected final byte buf[];
+    
+    /** Size of image in bytes. */
+    protected final int size;
     
     /** Timestamp of when the frame was read. */
     private final long timestamp;
@@ -35,16 +38,18 @@ public class Frame
     /**
      * Creates the frame with the specified content size.
      * 
-     * @param mime buf mime type
-     * @param data buf data bytes 
+     * @param mime mime type
+     * @param data image data bytes 
+     * @param size size of buf
      * @param seq sequence number of frame
      */
-    public Frame(String mime, byte data[], int seq)
+    public Frame(String mime, byte data[], int size, int seq)
     {
         this.mime = mime.trim();
         this.buf = data;
         this.timestamp = System.currentTimeMillis();
         this.sequence = seq;
+        this.size = size;
     }
     
     /**
@@ -54,7 +59,7 @@ public class Frame
      */
     public BufferedImage decodeImage(EncoderDecoder ed) throws Exception
     {
-        return ed.decode(this.buf);
+        return ed.decode(this.buf, size);
     }
     
     /**
@@ -65,7 +70,7 @@ public class Frame
      */
     public void writeTo(OutputStream stream) throws IOException
     {
-        stream.write(this.buf);
+        stream.write(this.buf, 0, size);
         stream.flush();
     }
     

@@ -174,7 +174,8 @@ public class FrameTransformer
      */
     private Frame encode(Frame orig, BufferedImage image) throws Exception
     {
-        return new Frame("image/jpeg", this.ed.encode(image, this.encodeQuality), orig.getSequence());
+        byte buf[] = this.ed.encode(image, this.encodeQuality);
+        return new Frame("image/jpeg", buf, buf.length, orig.getSequence());
     }
     
     /**

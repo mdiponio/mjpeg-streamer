@@ -23,9 +23,9 @@ import javax.imageio.stream.MemoryCacheImageOutputStream;
 public class AWTJpegEncoderDecoder implements EncoderDecoder
 {
     @Override
-    public BufferedImage decode(byte buf[]) throws Exception
+    public BufferedImage decode(byte buf[], int size) throws Exception
     {
-        return ImageIO.read(new ByteArrayInputStream(buf));
+        return ImageIO.read(new ByteArrayInputStream(buf, 0, size));
     }
     
     @Override

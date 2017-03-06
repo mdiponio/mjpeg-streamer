@@ -30,9 +30,10 @@ public interface EncoderDecoder
     /**
      * Decodes format to raw image.
      * @param buf format
+     * @param size size of image in bytes
      * @return image 
      */
-    public BufferedImage decode(byte[] buf) throws Exception;
+    public BufferedImage decode(byte[] buf, int size) throws Exception;
     
     /**
      * Dispose of encoder.

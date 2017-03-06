@@ -22,7 +22,7 @@ import au.edu.remotelabs.mjpeg.source.SourceStream;
 public class MJpegOutput extends StreamOutput
 {
     /** Boundary this application uses to delimit each frame. */
-    public static String BOUNDARY = "mjpeg-streamer";
+    public static String BOUNDARY = "ffserver";
     
     /** Delay in milliseconds between frames to maintain target frame rate. */
     protected final int delay;
@@ -84,8 +84,8 @@ public class MJpegOutput extends StreamOutput
     protected void sendFrame(Frame frame) throws IOException
     {
         this.writeln("--", BOUNDARY);
-        this.writeln("content-type: ", frame.getContentType());
-        this.writeln("content-length: ", frame.getContentLength());
+        this.writeln("Content-type: ", frame.getContentType());
+        this.writeln("Content-length: ", frame.getContentLength());
         if (this.sendSequence) this.writeln("frame-sequence: ", frame.getSequence() - this.sequenceOffset);
         this.writeln();
         
