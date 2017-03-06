@@ -31,7 +31,7 @@ public class TimestampOp implements TransformOp
     public TimestampOp()
     {
         formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy kk:mm:ss");
-        font = Font.decode("Arial-BOLD-14");
+        font = new Font("SanSerif", Font.BOLD, 18);
     }
     
 

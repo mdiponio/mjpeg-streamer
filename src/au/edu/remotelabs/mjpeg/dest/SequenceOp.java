@@ -28,7 +28,7 @@ public class SequenceOp implements TransformOp
     
     public SequenceOp()
     {
-        this.font = Font.decode("Arial-BOLD-24");
+        this.font = new Font("SanSerif", Font.BOLD, 24);
     }
     
     @Override
